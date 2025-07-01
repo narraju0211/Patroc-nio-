@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Aquiles Intermission PRO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800&family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --font-color: white;
+            --timer-color: #0ff;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--font-color);
+            overflow: hidden; /* Evita barras de rolagem */
+            transition: background-color 0.5s ease;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 90%;
+            max-width: 1200px;
+            text-align: center;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        .container.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* --- Intro / Main Message --- */
+        #introScreen {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+            transition: opacity 0.8s ease-in-out;
+            width: 100%;
+        }
+        #introScreen.hidden {
+            opacity: 0;
+        }
+        #introMessage {
+            font-size: 4em; /* Grande e impactante */
+            font-weight: 800;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            word-break: break-word; /* Quebra palavras longas */
+        }
+        #countdownTimer {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 3em;
+            font-weight: 700;
+            color: var(--timer-color);
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 10px 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        /* --- Sponsors --- */
+        #sponsorScreen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%; /* Ocupa o espaço disponível */
+            transition: opacity 0.8s ease-in-out;
+            opacity: 0;
+            position: absolute; /* Para sobrepor a intro */
+            top: 0; left: 0;
+            background-color: var(--bg-color); /* Garante que o fundo seja o mesmo */
+        }
+        #sponsorScreen.active {
+            opacity: 1;
+            position: relative; /* Volta ao fluxo para ocupar espaço */
+        }
+        #sponsorImage {
+            max-width: 90%; /* Ajusta para caber na tela */
+            max-height: 80vh; /* Ajusta para caber na altura da tela */
+            object-fit: contain; /* Garante que a imagem seja contida */
+            display: block; /* Remove espaço extra abaixo da imagem */
+            margin: auto; /* Centraliza a imagem */
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+            border-radius: 10px;
+            transition: opacity 0.1s ease-in-out; /* Transição rápida para troca de imagem */
+        }
+
+        /* --- Social Media --- */
+        #socialScreen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            transition: opacity 0.8s ease-in-out;
+            opacity: 0;
+            width: 100%;
+        }
+        #socialScreen.active {
+            opacity: 1;
+        }
+
+        #mainLogo {
+            max-width: 250px; /* Tamanho da logo principal */
+            height: auto;
+            object-fit: contain;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 8px rgba(0,0,0,0.5));
+        }
+
+        .social-icons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Ajusta colunas automaticamente */
+            gap: 20px;
+            width: 80%;
+            max-width: 600px;
+        }
+        .social-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 10px 15px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        .social-item img {
+            width: 32px; /* Tamanho dos ícones */
+            height: 32px;
+            filter: brightness(0) invert(1) drop-shadow(0 0 5px rgba(0,0,0,0.5)); /* Ícones brancos */
+        }
+        .social-item span {
+            font-size: 1.5em; /* Tamanho do texto das redes */
+            font-weight: 700;
+            color: var(--font-color);
+            white-space: nowrap; /* Evita quebra de linha */
+            overflow: hidden;
+            text-overflow: ellipsis; /* Adiciona "..." se o texto for muito longo */
+        }
+        .social-item a {
+            text-decoration: none;
+            color: inherit;
+            display: flex; /* Para centralizar o conteúdo do link */
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="intermissionContainer">
+
+        <div id="introScreen">
+            <h1 id="introMessage">Intervalo de Jogo, Voltamos Já!</h1>
+            <div id="countdownTimer">02:00</div>
+        </div>
+
+        <div id="sponsorScreen">
+            <img id="sponsorImage" src="" alt="Patrocínio">
+        </div>
+
+        <div id="socialScreen">
+            <img id="mainLogo" src="" alt="Logo Principal">
+            <div class="social-icons-grid" id="socialIconsGrid">
+                </div>
+        </div>
+
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <script>
+        // ** SEU FIREBASE CONFIG ESTÁ AQUI (O MESMO QUE VOCÊ JÁ USA) **
+        const firebaseConfig = {
+            apiKey: "AIzaSyAFp_iujrtqjiTU5yq2yNSBIpwgjQZZyns",
+            authDomain: "aquilesplacarpro.firebaseapp.com",
+            databaseURL: "https://aquilesplacarpro-default-rtdb.firebaseio.com",
+            projectId: "aquilesplacarpro",
+            storageBucket: "aquilesplacarpro.firebasestorage.app",
+            messagingSenderId: "922321609151",
+            appId: "1:922321609151:web:ba51f5b21b322cf0a4c10a"
+        };
+
+        const app = firebase.initializeApp(firebaseConfig);
+        let database;
+        let intervalStateRef;
+
+        let intervalData = {
+            intervalDuration: 120, // 2 minutos padrão
+            currentPhase: 'Intro', // 'Intro', 'Sponsor', 'Social'
+            sponsors: [], // Array de { imageURL: '', duration: 5 }
+            socialMedia: {
+                instagram: '', youtube: '', facebook: '', tiktok: '', website: ''
+            },
+            logoPrincipal: '',
+            mainMessage: 'Intervalo de Jogo, Voltamos Já!',
+            backgroundColor: '#1a1a1a',
+            fontColor: 'white',
+            isVisible: true
+        };
+
+        let countdownInterval = null;
+        let currentSeconds = 0;
+        let sponsorIndex = 0;
+        let sponsorTimer = null;
+
+        const introScreen = document.getElementById('introScreen');
+        const sponsorScreen = document.getElementById('sponsorScreen');
+        const socialScreen = document.getElementById('socialScreen');
+        const countdownTimerDisplay = document.getElementById('countdownTimer');
+        const introMessageDisplay = document.getElementById('introMessage');
+        const sponsorImageDisplay = document.getElementById('sponsorImage');
+        const mainLogoDisplay = document.getElementById('mainLogo');
+        const socialIconsGrid = document.getElementById('socialIconsGrid');
+        const intermissionContainer = document.getElementById('intermissionContainer');
+
+        const socialIcons = {
+            instagram: 'https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg',
+            youtube: 'https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg',
+            facebook: 'https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg',
+            tiktok: 'https://upload.wikimedia.org/wikipedia/commons/c/c4/TikTok_logo.svg',
+            website: 'https://upload.wikimedia.org/wikipedia/commons/0/07/Website_icon_and_symbol.svg'
+        };
+
+        document.addEventListener('DOMContentLoaded', initializeApp);
+
+        function initializeApp() {
+            database = app.database();
+            const urlParams = new URLSearchParams(window.location.search);
+            const narratorId = urlParams.get('narratorId');
+
+            if (narratorId) {
+                setupFirebaseForNarrator(narratorId);
+            } else {
+                console.error("ID do Narrador não encontrado na URL. Use ?narratorId=SEU_ID");
+                document.body.innerHTML = '<div style="color: red; font-size: 24px; text-align: center; padding: 20px;">ERRO: ID do Narrador não definido na URL.<br>Ex: interval.html?narratorId=seu_id</div>';
+            }
+        }
+
+        function setupFirebaseForNarrator(narratorId) {
+            intervalStateRef = database.ref(`narrators/${narratorId}/intervalState`);
+
+            intervalStateRef.on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    const newState = snapshot.val();
+                    
+                    // Atualiza intervalData com valores do Firebase, usando defaults se não existirem
+                    intervalData.intervalDuration = newState.intervalDuration !== undefined ? newState.intervalDuration : 120;
+                    intervalData.currentPhase = newState.currentPhase || 'Intro';
+                    intervalData.sponsors = newState.sponsors || [];
+                    intervalData.socialMedia = newState.socialMedia || { instagram: '', youtube: '', facebook: '', tiktok: '', website: '' };
+                    intervalData.logoPrincipal = newState.logoPrincipal || '';
+                    intervalData.mainMessage = newState.mainMessage || 'Intervalo de Jogo, Voltamos Já!';
+                    intervalData.backgroundColor = newState.backgroundColor || '#1a1a1a';
+                    intervalData.fontColor = newState.fontColor || 'white';
+                    intervalData.isVisible = newState.isVisible !== undefined ? newState.isVisible : true;
+                    
+                    const firebaseCurrentSeconds = newState.currentSeconds !== undefined ? newState.currentSeconds : intervalData.intervalDuration; // Tempo restante
+                    const firebaseRunning = newState.running !== undefined ? newState.running : false;
+
+                    // Lógica de controle do timer
+                    if (firebaseRunning && !countdownInterval) {
+                        currentSeconds = firebaseCurrentSeconds; // Inicia ou reseta o tempo
+                        startCountdown();
+                    } else if (!firebaseRunning && countdownInterval) {
+                        stopCountdown();
+                        currentSeconds = firebaseCurrentSeconds; // Sincroniza o tempo parado
+                    } else if (!firebaseRunning && !countdownInterval && currentSeconds !== firebaseCurrentSeconds) {
+                        currentSeconds = firebaseCurrentSeconds; // Sincroniza tempo resetado/ajustado
+                    }
+
+                    renderIntermissionScreen();
+                } else {
+                    console.warn(`Nó para narrador '${narratorId}' no estado de intervalo não encontrado no Firebase. Aguardando dados do controlador.`);
+                    // Opcional: Mostrar uma mensagem na tela de intervalo
+                }
+            }, (error) => {
+                console.error("Erro ao ler dados do Firebase para intervalo:", error);
+                document.body.innerHTML = '<div style="color: red; font-size: 24px; text-align: center; padding: 20px;">ERRO DE FIREBASE.<br>Verifique sua configuração ou conexão.</div>';
+            });
+        }
+
+        function startCountdown() {
+            if (countdownInterval) clearInterval(countdownInterval); // Limpa qualquer timer anterior
+            updateCountdownDisplay(); // Atualiza imediatamente
+            
+            countdownInterval = setInterval(() => {
+                if (currentSeconds > 0) {
+                    currentSeconds--;
+                    updateCountdownDisplay();
+                    handlePhaseProgression();
+                } else {
+                    stopCountdown();
+                    // Opcional: fazer algo quando o tempo acaba, como esconder a tela ou reiniciar
+                    console.log("Intervalo terminado.");
+                    // Poderíamos reverter para a fase inicial ou esconder
+                    intervalStateRef.update({ running: false, currentPhase: 'Intro', currentSeconds: intervalData.intervalDuration });
+                }
+            }, 1000);
+            renderIntermissionScreen(); // Garante que a fase correta seja exibida ao iniciar
+        }
+
+        function stopCountdown() {
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+            if (sponsorTimer) {
+                clearTimeout(sponsorTimer);
+                sponsorTimer = null;
+            }
+        }
+
+        function updateCountdownDisplay() {
+            const minutes = String(Math.floor(currentSeconds / 60)).padStart(2, '0');
+            const seconds = String(currentSeconds % 60).padStart(2, '0');
+            countdownTimerDisplay.innerText = `${minutes}:${seconds}`;
+        }
+
+        function handlePhaseProgression() {
+            const remainingTime = currentSeconds;
+            const totalDuration = intervalData.intervalDuration;
+            const socialMediaDuration = 30; // Exemplo: últimos 30 segundos para redes sociais
+            
+            // Calcula o tempo que os patrocínios devem durar
+            const sponsorsTotalDuration = totalDuration - socialMediaDuration;
+
+            if (remainingTime <= 0) {
+                // Intervalo acabou ou está no final
+                intervalData.currentPhase = 'Social'; // Última fase antes de terminar
+            } else if (remainingTime <= socialMediaDuration && intervalData.socialMedia && Object.values(intervalData.socialMedia).some(val => val !== '')) {
+                // Entra na fase de redes sociais nos últimos 'socialMediaDuration' segundos
+                if (intervalData.currentPhase !== 'Social') {
+                    intervalData.currentPhase = 'Social';
+                    stopSponsorRotation(); // Garante que a rotação de patrocínios pare
+                    renderSocialMedia();
+                }
+            } else if (remainingTime <= sponsorsTotalDuration && intervalData.sponsors && intervalData.sponsors.length > 0) {
+                // Entra na fase de patrocínios
+                if (intervalData.currentPhase !== 'Sponsor') {
+                    intervalData.currentPhase = 'Sponsor';
+                    startSponsorRotation();
+                }
+            } else {
+                // Volta para a fase de introdução se nenhum dos anteriores se aplicar
+                intervalData.currentPhase = 'Intro';
+                stopSponsorRotation();
+            }
+            renderIntermissionScreen();
+        }
+
+        function renderIntermissionScreen() {
+            // Aplica estilos base
+            document.documentElement.style.setProperty('--bg-color', intervalData.backgroundColor);
+            document.documentElement.style.setProperty('--font-color', intervalData.fontColor);
+
+            // Controla a visibilidade geral do container
+            if (intervalData.isVisible) {
+                intermissionContainer.classList.remove('hidden');
+            } else {
+                intermissionContainer.classList.add('hidden');
+            }
+
+            // Exibe a tela correta com base na fase
+            introScreen.classList.add('hidden');
+            sponsorScreen.classList.remove('active'); // Remove active para resetar display
+            sponsorScreen.style.display = 'none'; // Esconde para não sobrepor
+            socialScreen.classList.remove('active');
+            socialScreen.style.display = 'none';
+
+            switch (intervalData.currentPhase) {
+                case 'Intro':
+                    introScreen.classList.remove('hidden');
+                    introMessageDisplay.innerText = intervalData.mainMessage;
+                    break;
+                case 'Sponsor':
+                    sponsorScreen.classList.add('active');
+                    sponsorScreen.style.display = 'flex'; // Exibe como flex para centralizar
+                    if (!sponsorTimer) startSponsorRotation(); // Garante que a rotação esteja ativa
+                    break;
+                case 'Social':
+                    socialScreen.classList.add('active');
+                    socialScreen.style.display = 'flex';
+                    stopSponsorRotation(); // Garante que a rotação pare
+                    renderSocialMedia();
+                    break;
+                default:
+                    // Se houver um estado desconhecido, volta para intro
+                    introScreen.classList.remove('hidden');
+                    introMessageDisplay.innerText = intervalData.mainMessage;
+                    break;
+            }
+        }
+
+        function startSponsorRotation() {
+            if (sponsorTimer) clearTimeout(sponsorTimer); // Limpa timer anterior
+
+            if (intervalData.sponsors && intervalData.sponsors.length > 0) {
+                // Esconde a imagem atual rapidamente para transição
+                sponsorImageDisplay.style.opacity = '0';
+                
+                // Muda a imagem após uma pequena pausa para a transição
+                setTimeout(() => {
+                    const currentSponsor = intervalData.sponsors[sponsorIndex];
+                    if (currentSponsor && currentSponsor.imageURL) {
+                        sponsorImageDisplay.src = currentSponsor.imageURL;
+                        sponsorImageDisplay.alt = `Patrocínio ${sponsorIndex + 1}`;
+                        sponsorImageDisplay.style.opacity = '1'; // Torna visível
+
+                        const duration = currentSponsor.duration || 5; // Padrão 5 segundos
+                        
+                        sponsorIndex = (sponsorIndex + 1) % intervalData.sponsors.length; // Próximo patrocínio
+                        sponsorTimer = setTimeout(startSponsorRotation, duration * 1000);
+                    } else {
+                        // Se não houver URL ou patrocínios acabaram, para a rotação
+                        sponsorImageDisplay.src = '';
+                        sponsorImageDisplay.alt = '';
+                        sponsorImageDisplay.style.opacity = '0';
+                        console.warn("Nenhum URL de patrocínio válido encontrado ou rotação finalizada.");
+                        stopSponsorRotation();
+                    }
+                }, 100); // Pequeno atraso para a transição de opacidade
+            } else {
+                sponsorImageDisplay.src = '';
+                sponsorImageDisplay.alt = '';
+                sponsorImageDisplay.style.opacity = '0';
+                console.log("Nenhum patrocínio configurado para rotação.");
+                stopSponsorRotation();
+            }
+        }
+
+        function stopSponsorRotation() {
+            if (sponsorTimer) {
+                clearTimeout(sponsorTimer);
+                sponsorTimer = null;
+            }
+            sponsorImageDisplay.src = ''; // Limpa a imagem
+            sponsorImageDisplay.alt = '';
+            sponsorImageDisplay.style.opacity = '0';
+            sponsorIndex = 0; // Reseta o índice para o próximo início
+        }
+
+        function renderSocialMedia() {
+            socialIconsGrid.innerHTML = ''; // Limpa ícones existentes
+
+            if (intervalData.logoPrincipal) {
+                mainLogoDisplay.src = intervalData.logoPrincipal;
+                mainLogoDisplay.style.display = 'block';
+            } else {
+                mainLogoDisplay.src = '';
+                mainLogoDisplay.style.display = 'none';
+            }
+
+            const { instagram, youtube, facebook, tiktok, website } = intervalData.socialMedia;
+
+            if (instagram) addSocialItem('Instagram', instagram, socialIcons.instagram, `https://www.instagram.com/${instagram.replace('@', '')}/`);
+            if (youtube) addSocialItem('YouTube', youtube, socialIcons.youtube, `https://www.youtube.com/${youtube}`);
+            if (facebook) addSocialItem('Facebook', facebook, socialIcons.facebook, `https://www.facebook.com/${facebook}`);
+            if (tiktok) addSocialItem('TikTok', tiktok, socialIcons.tiktok, `https://www.tiktok.com/${tiktok.replace('@', '')}`);
+            if (website) addSocialItem('Website', website, socialIcons.website, website.startsWith('http') ? website : `https://${website}`);
+        }
+
+        function addSocialItem(name, value, iconUrl, linkUrl) {
+            const socialItemDiv = document.createElement('div');
+            socialItemDiv.className = 'social-item';
+            socialItemDiv.innerHTML = `
+                <a href="${linkUrl}" target="_blank" rel="noopener noreferrer">
+                    <img src="${iconUrl}" alt="${name} icon">
+                    <span>${value}</span>
+                </a>
+            `;
+            socialIconsGrid.appendChild(socialItemDiv);
+        }
+
+        // Garante que o estado inicial do cronômetro seja exibido corretamente
+        updateCountdownDisplay();
+        renderIntermissionScreen(); // Renderiza a tela inicial
+    </script>
+</body>
+  </html>
