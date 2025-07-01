@@ -24,7 +24,7 @@
             font-family: 'Montserrat', sans-serif;
             background-color: var(--bg-color);
             color: var(--font-color);
-            overflow: hidden; /* Evita barras de rolagem */
+            overflow: hidden;
             transition: background-color 0.5s ease;
         }
 
@@ -38,6 +38,8 @@
             text-align: center;
             opacity: 1;
             transition: opacity 0.5s ease;
+            position: relative; /* Para posicionar telas */
+            height: 100%; /* Ocupa a altura disponível */
         }
 
         .container.hidden {
@@ -45,23 +47,38 @@
             pointer-events: none;
         }
 
-        /* --- Intro / Main Message --- */
-        #introScreen {
+        /* --- Telas Individuais (Intro, Sponsors, Social) --- */
+        .screen-phase {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             display: flex;
             flex-direction: column;
-            gap: 20px;
             align-items: center;
-            transition: opacity 0.8s ease-in-out;
-            width: 100%;
-        }
-        #introScreen.hidden {
+            justify-content: center;
             opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.8s ease-in-out;
+            box-sizing: border-box; /* Garante padding incluso na altura/largura */
+            padding: 20px; /* Adiciona um padding para o conteúdo */
+        }
+
+        .screen-phase.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* --- Intro / Main Message --- */
+        #introScreen {
+            gap: 20px;
         }
         #introMessage {
-            font-size: 4em; /* Grande e impactante */
+            font-size: 4em;
             font-weight: 800;
             text-shadow: 0 4px 8px rgba(0,0,0,0.5);
-            word-break: break-word; /* Quebra palavras longas */
+            word-break: break-word;
         }
         #countdownTimer {
             font-family: 'Roboto Mono', monospace;
@@ -76,50 +93,25 @@
 
         /* --- Sponsors --- */
         #sponsorScreen {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 100%; /* Ocupa o espaço disponível */
-            transition: opacity 0.8s ease-in-out;
-            opacity: 0;
-            position: absolute; /* Para sobrepor a intro */
-            top: 0; left: 0;
-            background-color: var(--bg-color); /* Garante que o fundo seja o mesmo */
-        }
-        #sponsorScreen.active {
-            opacity: 1;
-            position: relative; /* Volta ao fluxo para ocupar espaço */
         }
         #sponsorImage {
-            max-width: 90%; /* Ajusta para caber na tela */
-            max-height: 80vh; /* Ajusta para caber na altura da tela */
-            object-fit: contain; /* Garante que a imagem seja contida */
-            display: block; /* Remove espaço extra abaixo da imagem */
-            margin: auto; /* Centraliza a imagem */
+            max-width: 95%; /* Ajusta para caber na tela */
+            max-height: 90vh; /* Ajusta para caber na altura da tela */
+            object-fit: contain;
+            display: block;
+            margin: auto;
             box-shadow: 0 8px 20px rgba(0,0,0,0.6);
             border-radius: 10px;
-            transition: opacity 0.1s ease-in-out; /* Transição rápida para troca de imagem */
+            transition: opacity 0.1s ease-in-out;
         }
 
         /* --- Social Media --- */
         #socialScreen {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
             gap: 25px;
-            transition: opacity 0.8s ease-in-out;
-            opacity: 0;
-            width: 100%;
-        }
-        #socialScreen.active {
-            opacity: 1;
         }
 
         #mainLogo {
-            max-width: 250px; /* Tamanho da logo principal */
+            max-width: 250px;
             height: auto;
             object-fit: contain;
             margin-bottom: 20px;
@@ -128,7 +120,7 @@
 
         .social-icons-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Ajusta colunas automaticamente */
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 20px;
             width: 80%;
             max-width: 600px;
@@ -144,22 +136,22 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
         .social-item img {
-            width: 32px; /* Tamanho dos ícones */
+            width: 32px;
             height: 32px;
-            filter: brightness(0) invert(1) drop-shadow(0 0 5px rgba(0,0,0,0.5)); /* Ícones brancos */
+            filter: brightness(0) invert(1) drop-shadow(0 0 5px rgba(0,0,0,0.5));
         }
         .social-item span {
-            font-size: 1.5em; /* Tamanho do texto das redes */
+            font-size: 1.5em;
             font-weight: 700;
             color: var(--font-color);
-            white-space: nowrap; /* Evita quebra de linha */
+            white-space: nowrap;
             overflow: hidden;
-            text-overflow: ellipsis; /* Adiciona "..." se o texto for muito longo */
+            text-overflow: ellipsis;
         }
         .social-item a {
             text-decoration: none;
             color: inherit;
-            display: flex; /* Para centralizar o conteúdo do link */
+            display: flex;
             align-items: center;
             justify-content: center;
             width: 100%;
@@ -169,16 +161,16 @@
 <body>
     <div class="container" id="intermissionContainer">
 
-        <div id="introScreen">
+        <div id="introScreen" class="screen-phase">
             <h1 id="introMessage">Intervalo de Jogo, Voltamos Já!</h1>
             <div id="countdownTimer">02:00</div>
         </div>
 
-        <div id="sponsorScreen">
+        <div id="sponsorScreen" class="screen-phase">
             <img id="sponsorImage" src="" alt="Patrocínio">
         </div>
 
-        <div id="socialScreen">
+        <div id="socialScreen" class="screen-phase">
             <img id="mainLogo" src="" alt="Logo Principal">
             <div class="social-icons-grid" id="socialIconsGrid">
                 </div>
@@ -206,9 +198,11 @@
         let intervalStateRef;
 
         let intervalData = {
-            intervalDuration: 120, // 2 minutos padrão
+            intervalDuration: 120,
+            currentSeconds: 120, // Tempo restante do cronômetro do intervalo
+            running: false,
             currentPhase: 'Intro', // 'Intro', 'Sponsor', 'Social'
-            sponsors: [], // Array de { imageURL: '', duration: 5 }
+            sponsors: [],
             socialMedia: {
                 instagram: '', youtube: '', facebook: '', tiktok: '', website: ''
             },
@@ -219,10 +213,9 @@
             isVisible: true
         };
 
-        let countdownInterval = null;
-        let currentSeconds = 0;
-        let sponsorIndex = 0;
-        let sponsorTimer = null;
+        let countdownInterval = null; // Timer para o contador regressivo
+        let sponsorRotationTimer = null; // Timer para a rotação de patrocínios
+        let currentSponsorIndex = 0; // Índice do patrocínio atual
 
         const introScreen = document.getElementById('introScreen');
         const sponsorScreen = document.getElementById('sponsorScreen');
@@ -272,27 +265,31 @@
                     intervalData.logoPrincipal = newState.logoPrincipal || '';
                     intervalData.mainMessage = newState.mainMessage || 'Intervalo de Jogo, Voltamos Já!';
                     intervalData.backgroundColor = newState.backgroundColor || '#1a1a1a';
+                    intervalData.fontColor = 'white'; // Mantém a cor da fonte padrão
+                    // A cor da fonte agora será diretamente do Firebase para a overlay
                     intervalData.fontColor = newState.fontColor || 'white';
                     intervalData.isVisible = newState.isVisible !== undefined ? newState.isVisible : true;
                     
-                    const firebaseCurrentSeconds = newState.currentSeconds !== undefined ? newState.currentSeconds : intervalData.intervalDuration; // Tempo restante
+                    const firebaseCurrentSeconds = newState.currentSeconds !== undefined ? newState.currentSeconds : intervalData.intervalDuration;
                     const firebaseRunning = newState.running !== undefined ? newState.running : false;
 
                     // Lógica de controle do timer
                     if (firebaseRunning && !countdownInterval) {
-                        currentSeconds = firebaseCurrentSeconds; // Inicia ou reseta o tempo
+                        intervalData.currentSeconds = firebaseCurrentSeconds; // Sincroniza o tempo inicial
                         startCountdown();
                     } else if (!firebaseRunning && countdownInterval) {
                         stopCountdown();
-                        currentSeconds = firebaseCurrentSeconds; // Sincroniza o tempo parado
-                    } else if (!firebaseRunning && !countdownInterval && currentSeconds !== firebaseCurrentSeconds) {
-                        currentSeconds = firebaseCurrentSeconds; // Sincroniza tempo resetado/ajustado
+                        intervalData.currentSeconds = firebaseCurrentSeconds; // Sincroniza o tempo parado
+                    } else if (!firebaseRunning && !countdownInterval && intervalData.currentSeconds !== firebaseCurrentSeconds) {
+                        // Timer parado no Firebase e o tempo foi resetado/ajustado no controlador
+                        intervalData.currentSeconds = firebaseCurrentSeconds;
                     }
-
-                    renderIntermissionScreen();
+                    // Se o timer já está rodando localmente e o Firebase continua enviando `running: true`,
+                    // não faz nada para não interromper a contagem independente.
+                    
+                    renderIntermissionScreen(); // Sempre renderiza ao receber atualização
                 } else {
                     console.warn(`Nó para narrador '${narratorId}' no estado de intervalo não encontrado no Firebase. Aguardando dados do controlador.`);
-                    // Opcional: Mostrar uma mensagem na tela de intervalo
                 }
             }, (error) => {
                 console.error("Erro ao ler dados do Firebase para intervalo:", error);
@@ -303,21 +300,17 @@
         function startCountdown() {
             if (countdownInterval) clearInterval(countdownInterval); // Limpa qualquer timer anterior
             updateCountdownDisplay(); // Atualiza imediatamente
-            
+
             countdownInterval = setInterval(() => {
-                if (currentSeconds > 0) {
-                    currentSeconds--;
+                if (intervalData.currentSeconds > 0) {
+                    intervalData.currentSeconds--;
                     updateCountdownDisplay();
-                    handlePhaseProgression();
+                    // Não chamamos handlePhaseProgression aqui, pois a fase é ditada pelo Firebase
                 } else {
                     stopCountdown();
-                    // Opcional: fazer algo quando o tempo acaba, como esconder a tela ou reiniciar
-                    console.log("Intervalo terminado.");
-                    // Poderíamos reverter para a fase inicial ou esconder
-                    intervalStateRef.update({ running: false, currentPhase: 'Intro', currentSeconds: intervalData.intervalDuration });
+                    console.log("Contador do intervalo terminou.");
                 }
             }, 1000);
-            renderIntermissionScreen(); // Garante que a fase correta seja exibida ao iniciar
         }
 
         function stopCountdown() {
@@ -325,48 +318,18 @@
                 clearInterval(countdownInterval);
                 countdownInterval = null;
             }
-            if (sponsorTimer) {
-                clearTimeout(sponsorTimer);
-                sponsorTimer = null;
+            if (sponsorRotationTimer) {
+                clearTimeout(sponsorRotationTimer);
+                sponsorRotationTimer = null;
             }
+            sponsorImageDisplay.style.opacity = '0'; // Esconde a imagem do patrocínio
+            currentSponsorIndex = 0; // Reseta o índice
         }
 
         function updateCountdownDisplay() {
-            const minutes = String(Math.floor(currentSeconds / 60)).padStart(2, '0');
-            const seconds = String(currentSeconds % 60).padStart(2, '0');
+            const minutes = String(Math.floor(intervalData.currentSeconds / 60)).padStart(2, '0');
+            const seconds = String(intervalData.currentSeconds % 60).padStart(2, '0');
             countdownTimerDisplay.innerText = `${minutes}:${seconds}`;
-        }
-
-        function handlePhaseProgression() {
-            const remainingTime = currentSeconds;
-            const totalDuration = intervalData.intervalDuration;
-            const socialMediaDuration = 30; // Exemplo: últimos 30 segundos para redes sociais
-            
-            // Calcula o tempo que os patrocínios devem durar
-            const sponsorsTotalDuration = totalDuration - socialMediaDuration;
-
-            if (remainingTime <= 0) {
-                // Intervalo acabou ou está no final
-                intervalData.currentPhase = 'Social'; // Última fase antes de terminar
-            } else if (remainingTime <= socialMediaDuration && intervalData.socialMedia && Object.values(intervalData.socialMedia).some(val => val !== '')) {
-                // Entra na fase de redes sociais nos últimos 'socialMediaDuration' segundos
-                if (intervalData.currentPhase !== 'Social') {
-                    intervalData.currentPhase = 'Social';
-                    stopSponsorRotation(); // Garante que a rotação de patrocínios pare
-                    renderSocialMedia();
-                }
-            } else if (remainingTime <= sponsorsTotalDuration && intervalData.sponsors && intervalData.sponsors.length > 0) {
-                // Entra na fase de patrocínios
-                if (intervalData.currentPhase !== 'Sponsor') {
-                    intervalData.currentPhase = 'Sponsor';
-                    startSponsorRotation();
-                }
-            } else {
-                // Volta para a fase de introdução se nenhum dos anteriores se aplicar
-                intervalData.currentPhase = 'Intro';
-                stopSponsorRotation();
-            }
-            renderIntermissionScreen();
         }
 
         function renderIntermissionScreen() {
@@ -381,39 +344,37 @@
                 intermissionContainer.classList.add('hidden');
             }
 
-            // Exibe a tela correta com base na fase
-            introScreen.classList.add('hidden');
-            sponsorScreen.classList.remove('active'); // Remove active para resetar display
-            sponsorScreen.style.display = 'none'; // Esconde para não sobrepor
+            // Esconde todas as fases primeiro
+            introScreen.classList.remove('active');
+            sponsorScreen.classList.remove('active');
             socialScreen.classList.remove('active');
-            socialScreen.style.display = 'none';
+            
+            // Garante que o timer de rotação de patrocínios esteja parado antes de decidir
+            stopSponsorRotation();
 
+            // Exibe a tela correta com base na fase recebida do Firebase
             switch (intervalData.currentPhase) {
                 case 'Intro':
-                    introScreen.classList.remove('hidden');
+                    introScreen.classList.add('active');
                     introMessageDisplay.innerText = intervalData.mainMessage;
                     break;
                 case 'Sponsor':
                     sponsorScreen.classList.add('active');
-                    sponsorScreen.style.display = 'flex'; // Exibe como flex para centralizar
-                    if (!sponsorTimer) startSponsorRotation(); // Garante que a rotação esteja ativa
+                    startSponsorRotation(); // Inicia a rotação de patrocínios
                     break;
                 case 'Social':
                     socialScreen.classList.add('active');
-                    socialScreen.style.display = 'flex';
-                    stopSponsorRotation(); // Garante que a rotação pare
                     renderSocialMedia();
                     break;
                 default:
-                    // Se houver um estado desconhecido, volta para intro
-                    introScreen.classList.remove('hidden');
+                    introScreen.classList.add('active'); // Padrão se a fase for desconhecida
                     introMessageDisplay.innerText = intervalData.mainMessage;
                     break;
             }
         }
 
         function startSponsorRotation() {
-            if (sponsorTimer) clearTimeout(sponsorTimer); // Limpa timer anterior
+            if (sponsorRotationTimer) clearTimeout(sponsorRotationTimer); // Limpa timer anterior
 
             if (intervalData.sponsors && intervalData.sponsors.length > 0) {
                 // Esconde a imagem atual rapidamente para transição
@@ -421,43 +382,37 @@
                 
                 // Muda a imagem após uma pequena pausa para a transição
                 setTimeout(() => {
-                    const currentSponsor = intervalData.sponsors[sponsorIndex];
+                    const currentSponsor = intervalData.sponsors[currentSponsorIndex];
                     if (currentSponsor && currentSponsor.imageURL) {
                         sponsorImageDisplay.src = currentSponsor.imageURL;
-                        sponsorImageDisplay.alt = `Patrocínio ${sponsorIndex + 1}`;
+                        sponsorImageDisplay.alt = `Patrocínio ${currentSponsorIndex + 1}`;
                         sponsorImageDisplay.style.opacity = '1'; // Torna visível
 
                         const duration = currentSponsor.duration || 5; // Padrão 5 segundos
                         
-                        sponsorIndex = (sponsorIndex + 1) % intervalData.sponsors.length; // Próximo patrocínio
-                        sponsorTimer = setTimeout(startSponsorRotation, duration * 1000);
+                        currentSponsorIndex = (currentSponsorIndex + 1) % intervalData.sponsors.length; // Próximo patrocínio
+                        sponsorRotationTimer = setTimeout(startSponsorRotation, duration * 1000);
                     } else {
                         // Se não houver URL ou patrocínios acabaram, para a rotação
-                        sponsorImageDisplay.src = '';
-                        sponsorImageDisplay.alt = '';
-                        sponsorImageDisplay.style.opacity = '0';
                         console.warn("Nenhum URL de patrocínio válido encontrado ou rotação finalizada.");
                         stopSponsorRotation();
                     }
                 }, 100); // Pequeno atraso para a transição de opacidade
             } else {
-                sponsorImageDisplay.src = '';
-                sponsorImageDisplay.alt = '';
-                sponsorImageDisplay.style.opacity = '0';
                 console.log("Nenhum patrocínio configurado para rotação.");
                 stopSponsorRotation();
             }
         }
 
         function stopSponsorRotation() {
-            if (sponsorTimer) {
-                clearTimeout(sponsorTimer);
-                sponsorTimer = null;
+            if (sponsorRotationTimer) {
+                clearTimeout(sponsorRotationTimer);
+                sponsorRotationTimer = null;
             }
-            sponsorImageDisplay.src = ''; // Limpa a imagem
+            sponsorImageDisplay.src = '';
             sponsorImageDisplay.alt = '';
             sponsorImageDisplay.style.opacity = '0';
-            sponsorIndex = 0; // Reseta o índice para o próximo início
+            currentSponsorIndex = 0; // Reseta o índice para o próximo início
         }
 
         function renderSocialMedia() {
@@ -474,9 +429,9 @@
             const { instagram, youtube, facebook, tiktok, website } = intervalData.socialMedia;
 
             if (instagram) addSocialItem('Instagram', instagram, socialIcons.instagram, `https://www.instagram.com/${instagram.replace('@', '')}/`);
-            if (youtube) addSocialItem('YouTube', youtube, socialIcons.youtube, `https://www.youtube.com/${youtube}`);
+            if (youtube) addSocialItem('YouTube', youtube, socialIcons.youtube, `https://www.youtube.com/${youtube}`); // Link direto para o canal
             if (facebook) addSocialItem('Facebook', facebook, socialIcons.facebook, `https://www.facebook.com/${facebook}`);
-            if (tiktok) addSocialItem('TikTok', tiktok, socialIcons.tiktok, `https://www.tiktok.com/${tiktok.replace('@', '')}`);
+            if (tiktok) addSocialItem('TikTok', tiktok, socialIcons.tiktok, `https://www.tiktok.com/@${tiktok.replace('@', '')}`); // Link direto para o perfil
             if (website) addSocialItem('Website', website, socialIcons.website, website.startsWith('http') ? website : `https://${website}`);
         }
 
@@ -497,4 +452,4 @@
         renderIntermissionScreen(); // Renderiza a tela inicial
     </script>
 </body>
-  </html>
+</html>
