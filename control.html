@@ -2,39 +2,479 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Aquiles Control PRO</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+    <title>Sua Marmitaria - Delivery de Marmitas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: #2c3e50;
-            color: #ecf0f1;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-            box-sizing: border-box;
-            overflow-y: auto;
+        /* Variáveis de Cores */
+        :root {
+            --primary-color: #e74c3c;
+            --secondary-color: #2c3e50;
+            --background-color: #f4f7f6;
+            --card-background: #ffffff;
+            --text-color: #333;
+            --light-text-color: #7f8c8d;
+            --accent-green: #28a745;
         }
 
+        /* Estilos básicos */
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Container principal */
         .container {
-            background-color: #34495e;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-            width: 100%;
-            max-width: 900px;
-            min-width: 300px;
-            display: flex;
-            flex-direction: column;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background-color: var(--card-background);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-size: 3em;
+            margin: 0;
+            font-weight: 700;
+        }
+
+        header p {
+            color: var(--light-text-color);
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+        
+        /* Layout de Conteúdo */
+        .content-wrapper {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
             gap: 20px;
         }
 
-        .tabs {
+        /* Seções de Cardápio e Carrinho */
+        .menu-section {
+            background-color: var(--card-background);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .menu-section h2 {
+            color: var(--secondary-color);
+            font-size: 2em;
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 5px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        /* Itens do Cardápio */
+        .menu-item {
             display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.3s ease;
+        }
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .menu-item:hover {
+            background-color: #f9f9f9;
+        }
+
+        .item-image {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .item-details {
+            flex-grow: 1;
+        }
+
+        .item-details h3 {
+            margin: 0;
+            color: var(--secondary-color);
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+
+        .item-details p {
+            margin: 5px 0 0;
+            color: var(--light-text-color);
+            font-size: 0.9em;
+        }
+
+        .item-actions {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .item-price {
+            display: block;
+            font-size: 1.4em;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .btn-add {
+            background-color: var(--accent-green);
+            color: #fff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease;
+        }
+        .btn-add:hover {
+            background-color: #218838;
+        }
+
+        /* Carrinho e Checkout */
+        .cart-section, .checkout-section {
+            background-color: var(--card-background);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            height: fit-content;
+        }
+
+        .cart-section h2, .checkout-section h2 {
+            color: var(--secondary-color);
+            font-size: 1.8em;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
+            margin-bottom: 20px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px dashed #ddd;
+        }
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .cart-item-name {
+            font-weight: 600;
+        }
+
+        .cart-item-remove {
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 0.9em;
+            text-decoration: underline;
+        }
+
+        .cart-summary {
+            margin-top: 20px;
+            border-top: 2px solid var(--secondary-color);
+            padding-top: 15px;
+            font-size: 1.2em;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .btn-checkout {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+        }
+        .btn-checkout:hover {
+            background-color: #c0392b;
+        }
+
+        /* Formulário de Checkout */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            box-sizing: border-box; /* Para incluir padding e borda na largura */
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2.2em;
+            }
+            .content-wrapper {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Sua Marmitaria</h1>
+        <p>O melhor sabor da cidade, direto na sua casa!</p>
+    </header>
+
+    <div class="container">
+        <div class="content-wrapper">
+            <main>
+                <div class="menu-section">
+                    <h2>Cardápio do Dia</h2>
+                    <div id="marmitas-list">
+                        </div>
+                </div>
+
+                <div class="menu-section">
+                    <h2>Adicionais</h2>
+                    <div id="adicionais-list">
+                        </div>
+                </div>
+            </main>
+
+            <aside>
+                <div class="cart-section">
+                    <h2>Seu Carrinho</h2>
+                    <div id="cart-list">
+                        <p id="empty-cart-message">Seu carrinho está vazio.</p>
+                        </div>
+                    <div id="cart-summary" style="display:none;">
+                        <div class="cart-summary">
+                            <span>Total:</span>
+                            <span id="cart-total">R$ 0,00</span>
+                        </div>
+                        <button class="btn-checkout" onclick="showCheckout()">Finalizar Pedido</button>
+                    </div>
+                </div>
+
+                <div class="checkout-section" id="checkout-form" style="display:none;">
+                    <h2>Informações para Entrega</h2>
+                    <form id="delivery-form">
+                        <div class="form-group">
+                            <label for="name">Nome Completo</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="address">Endereço de Entrega</label>
+                            <input type="text" id="address" name="address" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Telefone</label>
+                            <input type="tel" id="phone" name="phone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="payment">Forma de Pagamento</label>
+                            <select id="payment" name="payment" required>
+                                <option value="">Selecione...</option>
+                                <option value="dinheiro">Dinheiro</option>
+                                <option value="cartao">Cartão na Entrega</option>
+                                <option value="pix">PIX</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-checkout">Confirmar Pedido</button>
+                    </form>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <script>
+        // --- SIMULAÇÃO DE DADOS DO CARDÁPIO (Substituir por Firebase) ---
+        const menuData = {
+            marmitas: [
+                { id: 1, name: 'Frango Grelhado com Legumes', description: 'Peito de frango suculento, arroz integral, feijão preto e legumes cozidos no vapor.', price: 25.00, image: 'https://via.placeholder.com/100/e74c3c/ffffff?text=Marmita+1' },
+                { id: 2, name: 'Bife Acebolado com Purê', description: 'Bife macio coberto com cebola, acompanhado de purê de batata cremoso e salada de folhas.', price: 28.00, image: 'https://via.placeholder.com/100/3498db/ffffff?text=Marmita+2' },
+                { id: 3, name: 'Marmita Vegetariana', description: 'Mix de vegetais salteados, grão de bico, arroz integral e lentilha.', price: 23.00, image: 'https://via.placeholder.com/100/2ecc71/ffffff?text=Marmita+3' },
+            ],
+            adicionais: [
+                { id: 4, name: 'Coca-Cola Lata', price: 6.00, image: 'https://via.placeholder.com/100/f39c12/ffffff?text=Coke' },
+                { id: 5, name: 'Pudim de Leite', price: 10.00, image: 'https://via.placeholder.com/100/9b59b6/ffffff?text=Pudim' },
+            ]
+        };
+
+        // --- Variáveis de Estado (SIMULAÇÃO) ---
+        let cart = [];
+        const marmitasList = document.getElementById('marmitas-list');
+        const adicionaisList = document.getElementById('adicionais-list');
+        const cartList = document.getElementById('cart-list');
+        const emptyCartMessage = document.getElementById('empty-cart-message');
+        const cartSummary = document.getElementById('cart-summary');
+        const cartTotalSpan = document.getElementById('cart-total');
+        const checkoutFormSection = document.getElementById('checkout-form');
+        const deliveryForm = document.getElementById('delivery-form');
+
+        // --- Funções de Renderização ---
+
+        function renderMenu() {
+            // Renderiza marmitas
+            menuData.marmitas.forEach(item => {
+                const itemHtml = `
+                    <div class="menu-item" data-id="${item.id}">
+                        <img src="${item.image}" alt="${item.name}" class="item-image">
+                        <div class="item-details">
+                            <h3>${item.name}</h3>
+                            <p>${item.description}</p>
+                        </div>
+                        <div class="item-actions">
+                            <span class="item-price">R$ ${item.price.toFixed(2).replace('.', ',')}</span>
+                            <button class="btn-add" onclick="addToCart(${item.id})">Adicionar</button>
+                        </div>
+                    </div>
+                `;
+                marmitasList.innerHTML += itemHtml;
+            });
+
+            // Renderiza adicionais
+            menuData.adicionais.forEach(item => {
+                const itemHtml = `
+                    <div class="menu-item" data-id="${item.id}">
+                        <img src="${item.image}" alt="${item.name}" class="item-image">
+                        <div class="item-details">
+                            <h3>${item.name}</h3>
+                        </div>
+                        <div class="item-actions">
+                            <span class="item-price">R$ ${item.price.toFixed(2).replace('.', ',')}</span>
+                            <button class="btn-add" onclick="addToCart(${item.id})">Adicionar</button>
+                        </div>
+                    </div>
+                `;
+                adicionaisList.innerHTML += itemHtml;
+            });
+        }
+
+        function renderCart() {
+            cartList.innerHTML = '';
+            let total = 0;
+
+            if (cart.length === 0) {
+                emptyCartMessage.style.display = 'block';
+                cartSummary.style.display = 'none';
+            } else {
+                emptyCartMessage.style.display = 'none';
+                cartSummary.style.display = 'block';
+                cart.forEach(item => {
+                    total += item.price;
+                    const itemHtml = `
+                        <div class="cart-item">
+                            <span class="cart-item-name">${item.name}</span>
+                            <span>R$ ${item.price.toFixed(2).replace('.', ',')}</span>
+                            <span class="cart-item-remove" onclick="removeFromCart(${item.id})">Remover</span>
+                        </div>
+                    `;
+                    cartList.innerHTML += itemHtml;
+                });
+            }
+
+            cartTotalSpan.innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+        }
+
+        // --- Funções de Lógica ---
+
+        function addToCart(itemId) {
+            const item = findMenuItem(itemId);
+            if (item) {
+                cart.push(item);
+                renderCart();
+            }
+        }
+
+        function removeFromCart(itemId) {
+            const index = cart.findIndex(item => item.id === itemId);
+            if (index > -1) {
+                cart.splice(index, 1);
+                renderCart();
+            }
+        }
+
+        function findMenuItem(itemId) {
+            let item = menuData.marmitas.find(m => m.id === itemId);
+            if (!item) {
+                item = menuData.adicionais.find(a => a.id === itemId);
+            }
+            return item;
+        }
+
+        function showCheckout() {
+            document.querySelector('.cart-section').style.display = 'none';
+            checkoutFormSection.style.display = 'block';
+        }
+
+        function handleDeliveryFormSubmit(event) {
+            event.preventDefault();
+            const formData = new FormData(deliveryForm);
+            const order = {
+                client: {
+                    name: formData.get('name'),
+                    address: formData.get('address'),
+                    phone: formData.get('phone'),
+                },
+                paymentMethod: formData.get('payment'),
+                items: cart,
+                total: parseFloat(cartTotalSpan.innerText.replace('R$ ', '').replace(',', '.')),
+                timestamp: new Date().toISOString()
+            };
+
+            // --- AQUI VOCÊ FARIA A INTEGRAÇÃO COM O FIREBASE ---
+            console.log('Pedido simulado:', order);
+            alert('Pedido confirmado! Acompanhe o status pelo seu celular. (Esta é uma simulação)');
+            
+            // Simula o reset do pedido
+            cart = [];
+            renderCart();
+            document.querySelector('.cart-section').style.display = 'block';
+            checkoutFormSection.style.display = 'none';
+        }
+        
+        // --- Inicialização ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMenu();
+            renderCart();
+            deliveryForm.addEventListener('submit', handleDeliveryFormSubmit);
+        });
+    </script>
+</body>
+    </html>            display: flex;
             margin-bottom: 20px;
             border-bottom: 2px solid #2c3e50;
         }
