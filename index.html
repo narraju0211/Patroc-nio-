@@ -10,7 +10,7 @@
     <style>
         /* Variáveis de Cores */
         :root {
-            --primary-color: #e74c3c; /* Cor padrão, será sobrescrita pelo Firebase */
+            --primary-color: #e74c3c;
             --secondary-color: #2c3e50;
             --background-color: #f4f7f6;
             --card-background: #ffffff;
@@ -41,13 +41,13 @@
         header {
             display: flex;
             align-items: center;
-            justify-content: center; /* Posição padrão, será sobrescrita */
+            justify-content: center;
             flex-direction: column;
             padding: 20px;
             background-color: var(--card-background);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
             margin-bottom: 20px;
-            text-align: center; /* Para centralizar o texto em mobile */
+            text-align: center;
         }
 
         /* Classes para posição do logo/header */
@@ -55,11 +55,10 @@
         .header-align-center { justify-content: center; text-align: center; }
         .header-align-right { justify-content: flex-end; text-align: right; }
 
-
         @media (min-width: 768px) {
             header {
                 flex-direction: row;
-                justify-content: space-between; /* Padrão desktop */
+                justify-content: space-between;
                 padding: 20px 40px;
             }
             header .logo-container {
@@ -72,9 +71,8 @@
             header p {
                 text-align: right;
             }
-            /* Ajustes para desktop com alinhamento */
             .header-align-left h1 { margin-left: 15px; margin-right: 0; }
-            .header-align-center h1 { margin-left: 15px; margin-right: 15px; } /* Ajuste para centralizar */
+            .header-align-center h1 { margin-left: 15px; margin-right: 15px; }
             .header-align-right h1 { margin-left: 0; margin-right: 15px; }
             .header-align-left p { text-align: left; }
             .header-align-center p { text-align: center; }
@@ -91,7 +89,7 @@
         header img {
             max-width: 100px;
             height: auto;
-            border-radius: 50%; /* Adicionado para manter o estilo circular */
+            border-radius: 50%;
             border: 2px solid var(--primary-color);
         }
 
@@ -323,22 +321,7 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             font-size: 1em;
-            box-sizing: border-box; /* Para incluir padding e borda na largura */
-        }
-        .form-group .item-counter {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-        }
-        .form-group .item-counter button {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            border: 1px solid var(--secondary-color);
-            background-color: #fff;
-            color: var(--secondary-color);
-            cursor: pointer;
+            box-sizing: border-box;
         }
 
         /* Acompanhamento de Pedidos */
@@ -364,37 +347,6 @@
             color: var(--secondary-color);
         }
 
-        .update-status-form {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #eee;
-        }
-
-        .update-status-form select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1em;
-            margin-bottom: 15px;
-            box-sizing: border-box;
-        }
-
-        .btn-update-status {
-            background-color: var(--primary-color);
-            color: #fff;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        .btn-update-status:hover {
-            background-color: #c0392b;
-        }
-
         /* Responsividade */
         @media (max-width: 768px) {
             .content-wrapper {
@@ -412,8 +364,7 @@
 
     <header id="main-header">
         <div class="logo-container">
-            <!-- Logo fixa agora, usando a imagem que você forneceu -->
-            <img id="logo-preview" src="http://googleusercontent.com/file_content/11" alt="Logo da Marmitaria">
+            <img id="logo-preview" src="https://firebasestorage.googleapis.com/v0/b/aquilesplacarpro.appspot.com/o/logo.jpeg?alt=media&token=81c96a79-d586-444a-953e-001c3600c0a9" alt="Logo da Marmitaria">
             <h1 id="marmitaria-name">Denny Martins</h1>
         </div>
         <div>
@@ -489,14 +440,11 @@
                     <input type="text" id="orderId" placeholder="Digite seu código">
                     <button onclick="trackOrder()">Buscar Pedido</button>
                     <div id="order-status" class="order-status"></div>
-
-                    <!-- Formulário de atualização de status removido, pois pertence ao painel de controle -->
                 </div>
             </aside>
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -507,19 +455,19 @@
             authDomain: "aquilesplacarpro.firebaseapp.com",
             databaseURL: "https://aquilesplacarpro-default-rtdb.firebaseio.com",
             projectId: "aquilesplacarpro",
-            storageBucket: "aquilesplacarpro.firebasestorage.app", // Mantido mas não usado para upload
+            storageBucket: "aquilesplacarpro.firebasestorage.app",
             messagingSenderId: "922321609151",
             appId: "1:922321609151:web:ba51f5b21b322cf0a4c10a"
         };
 
         // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.database(); // Get a reference to the database service
+        const db = firebase.database();
 
         // --- Variáveis de Estado ---
-        let menuData = { marmitas: {}, adicionais: {} }; // Agora será populado pelo Firebase
+        let menuData = { marmitas: {}, adicionais: {} };
         let cart = new Map();
-        let globalSettings = {}; // Para armazenar as configurações da marmitaria
+        let globalSettings = {};
 
         // --- Elementos do DOM ---
         const marmitasList = document.getElementById('marmitas-list');
@@ -536,40 +484,29 @@
         const loadingMarmitas = document.getElementById('loading-marmitas');
         const loadingAdicionais = document.getElementById('loading-adicionais');
 
-        // Header elements for dynamic updates
         const mainHeader = document.getElementById('main-header');
         const logoPreview = document.getElementById('logo-preview');
         const marmitariaName = document.getElementById('marmitaria-name');
         const marmitariaSlogan = document.getElementById('marmitaria-slogan');
         const currentDateTime = document.getElementById('current-datetime');
 
-        // Days of the week for daily colors
         const daysOfWeekNames = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
         const daysOfWeekKeys = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
+        // --- Funções Auxiliares ---
 
-        // --- Funções de Lógica do Aplicativo ---
-
-        /**
-         * Atualiza a data e hora no cabeçalho.
-         */
         function updateDateTime() {
             const now = new Date();
             const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
-
             const dayOfWeek = daysOfWeekNames[now.getDay()];
             const dayOfMonth = now.getDate();
             const month = months[now.getMonth()];
             const year = now.getFullYear();
             const hours = now.getHours().toString().padStart(2, '0');
             const minutes = now.getMinutes().toString().padStart(2, '0');
-
             currentDateTime.innerText = `Bom dia! Hoje é ${dayOfWeek}, ${dayOfMonth} de ${month} de ${year} às ${hours}:${minutes}.`;
         }
 
-        /**
-         * Aplica as configurações globais carregadas do Firebase.
-         */
         function applyGlobalSettings() {
             if (globalSettings.name) {
                 marmitariaName.innerText = globalSettings.name;
@@ -577,37 +514,21 @@
             if (globalSettings.slogan) {
                 marmitariaSlogan.innerText = globalSettings.slogan;
             }
-            // A logo agora é fixa no HTML, não é carregada das configurações
-            // if (globalSettings.logoUrl) {
-            //     logoPreview.src = globalSettings.logoUrl;
-            // } else {
-            //     logoPreview.src = 'http://googleusercontent.com/file_content/11'; // Fallback para a logo padrão
-            // }
-
-            // Aplica a posição do logo
             mainHeader.classList.remove('header-align-left', 'header-align-center', 'header-align-right');
             if (globalSettings.logoPosition) {
                 mainHeader.classList.add(`header-align-${globalSettings.logoPosition}`);
             } else {
-                mainHeader.classList.add('header-align-center'); // Padrão
+                mainHeader.classList.add('header-align-center');
             }
-
-            // Aplica a cor do dia da semana
-            const today = new Date().getDay(); // 0 = Domingo, 1 = Segunda, etc.
+            const today = new Date().getDay();
             const currentDayNameKey = daysOfWeekKeys[today];
-
             if (globalSettings.dailyColors && globalSettings.dailyColors[currentDayNameKey]) {
                 document.documentElement.style.setProperty('--primary-color', globalSettings.dailyColors[currentDayNameKey]);
             } else {
-                document.documentElement.style.setProperty('--primary-color', '#e74c3c'); // Cor padrão
+                document.documentElement.style.setProperty('--primary-color', '#e74c3c');
             }
         }
 
-        /**
-         * Encontra um item do menu pelo seu ID.
-         * @param {string} itemId - O ID do item a ser encontrado.
-         * @returns {object|undefined} O objeto do item se encontrado, caso contrário, undefined.
-         */
         function findMenuItem(itemId) {
             let item = null;
             if (menuData.marmitas && typeof menuData.marmitas === 'object') {
@@ -619,24 +540,21 @@
             return item;
         }
 
-        /**
-         * Renderiza os itens do cardápio na interface.
-         * Busca os dados de `menuData` e os exibe nas seções de marmitas e adicionais.
-         */
+        function showToast(message) {
+            toast.innerText = message;
+            toast.className = "toast show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        // --- Funções de Lógica Principal ---
+
         function renderMenu() {
             marmitasList.innerHTML = '';
             adicionaisList.innerHTML = '';
 
-            /**
-             * Cria o HTML para um único item do menu.
-             * @param {object} item - O objeto do item do menu.
-             * @param {boolean} isMarmita - True se o item for uma marmita (para incluir descrição).
-             * @returns {string} O HTML gerado para o item.
-             */
             function createMenuItemHTML(item, isMarmita = true) {
                 const descriptionHTML = isMarmita && item.description ? `<p>${item.description}</p>` : '';
-                // Usando uma imagem placeholder fixa
-                const imageUrl = 'https://placehold.co/80x80/e74c3c/ffffff?text=Item';
+                const imageUrl = item.imageUrl || 'https://placehold.co/80x80/e74c3c/ffffff?text=Item';
                 return `
                     <div class="menu-item" data-id="${item.id}">
                         <img src="${imageUrl}" alt="${item.name}" class="item-image" onerror="this.onerror=null;this.src='https://placehold.co/80x80/e74c3c/ffffff?text=Item';">
@@ -669,10 +587,6 @@
             }
         }
 
-        /**
-         * Renderiza os itens no carrinho de compras.
-         * Atualiza a lista de itens e o total do carrinho na interface.
-         */
         function renderCart() {
             cartList.innerHTML = '';
             let total = 0;
@@ -703,27 +617,15 @@
             cartTotalSpan.innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
         }
 
-        /**
-         * Adiciona um item ao carrinho ou incrementa sua quantidade.
-         * @param {string} itemId - O ID do item a ser adicionado.
-         */
         function addToCart(itemId) {
             const item = findMenuItem(itemId);
             if (item) {
-                if (cart.has(itemId)) {
-                    cart.set(itemId, cart.get(itemId) + 1);
-                } else {
-                    cart.set(itemId, 1);
-                }
+                cart.set(itemId, (cart.get(itemId) || 0) + 1);
                 renderCart();
                 showToast(`"${item.name}" adicionado(a)!`);
             }
         }
 
-        /**
-         * Remove um item do carrinho ou decrementa sua quantidade.
-         * @param {string} itemId - O ID do item a ser removido.
-         */
         function removeFromCart(itemId) {
             const quantity = cart.get(itemId);
             if (quantity > 1) {
@@ -734,36 +636,18 @@
             renderCart();
         }
 
-        /**
-         * Exibe o formulário de checkout e esconde a seção do carrinho.
-         */
         function showCheckout() {
             document.querySelector('.cart-section').style.display = 'none';
             checkoutFormSection.style.display = 'block';
         }
 
-        /**
-         * Exibe uma mensagem de toast na parte inferior da tela.
-         * @param {string} message - A mensagem a ser exibida.
-         */
-        function showToast(message) {
-            toast.innerText = message;
-            toast.className = "toast show";
-            setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
-        }
-
-        /**
-         * Lida com o envio do formulário de entrega.
-         * Salva o pedido no Firebase e abre o WhatsApp com a mensagem do pedido.
-         * @param {Event} event - O evento de envio do formulário.
-         */
         async function handleDeliveryFormSubmit(event) {
             event.preventDefault();
             const formData = new FormData(deliveryForm);
             
             const clientName = formData.get('name');
             const clientAddress = formData.get('address');
-            const clientPhone = formData.get('phone').replace(/\D/g, ''); // Remove caracteres não numéricos
+            const clientPhone = formData.get('phone').replace(/\D/g, '');
             const paymentMethod = formData.get('payment');
 
             let cartItemsText = '--- Pedido ---\n';
@@ -794,25 +678,23 @@
             const clientInfoText = `\n--- Dados para Entrega ---\n*Nome:* ${clientName}\n*Endereço:* ${clientAddress}\n*Telefone:* ${clientPhone}\n*Forma de Pagamento:* ${paymentMethod}`;
 
             try {
-                // Salva o pedido no Firebase Realtime Database
-                const newOrderRef = db.ref('orders').push(); // Cria um ID único para o pedido
-                const orderId = newOrderRef.key; // Pega o ID gerado pelo Firebase
+                const newOrderRef = db.ref('orders').push();
+                const orderId = newOrderRef.key;
 
                 await newOrderRef.set({
-                    id: orderId, // Armazena o ID também dentro do objeto
+                    id: orderId,
                     clientName,
                     clientAddress,
                     clientPhone,
                     paymentMethod,
-                    items: itemsForFirebase, // Usa o array de itens formatado
+                    items: itemsForFirebase,
                     total,
-                    status: 'Pendente', // Status inicial do pedido
-                    timestamp: firebase.database.ServerValue.TIMESTAMP // Timestamp do servidor
+                    status: 'Pendente',
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
                 });
 
                 showToast(`Pedido #${orderId} enviado com sucesso!`);
-                console.log("Pedido salvo no Firebase com ID:", orderId);
-
+                
                 const fullMessage = encodeURIComponent(
                     `Olá, gostaria de fazer o seguinte pedido (código *${orderId}*):\n\n` +
                     cartItemsText +
@@ -820,117 +702,75 @@
                     clientInfoText
                 );
 
-                // WhatsApp com o número da marmitaria
-                const whatsappNumber = '18981561535'; // Número de telefone da marmitaria
+                const whatsappNumber = '18981561535';
                 const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${fullMessage}`;
 
-                // Tenta abrir o WhatsApp
-                console.log("Tentando abrir WhatsApp com URL:", whatsappUrl);
                 try {
                     const newWindow = window.open(whatsappUrl, '_blank');
                     if (!newWindow || newWindow.closed || typeof newWindow.focus !== 'function') {
-                        // Provavelmente bloqueado por um pop-up blocker
-                        showToast("Pedido salvo, mas não foi possível abrir o WhatsApp automaticamente. Por favor, verifique se o bloqueador de pop-ups está ativo ou envie a mensagem manualmente.");
-                        console.warn("window.open pode ter sido bloqueado por um pop-up blocker.");
+                        showToast("Pedido salvo, mas não foi possível abrir o WhatsApp. Envie a mensagem manualmente.");
                     } else {
-                        newWindow.focus(); // Tenta focar na nova janela
+                        newWindow.focus();
                     }
                 } catch (whatsappError) {
                     console.error("Erro ao tentar abrir WhatsApp:", whatsappError);
-                    showToast("Pedido salvo, mas não foi possível abrir o WhatsApp automaticamente. Por favor, envie a mensagem manualmente.");
+                    showToast("Pedido salvo, mas não foi possível abrir o WhatsApp. Por favor, envie a mensagem manualmente.");
                 }
 
-                // Limpa o carrinho após o envio do pedido
+                // Limpa o carrinho e o formulário
                 cart.clear();
                 renderCart();
-                // Volta para a visualização do carrinho
+                deliveryForm.reset();
                 document.querySelector('.cart-section').style.display = 'block';
                 checkoutFormSection.style.display = 'none';
 
             } catch (error) {
-                console.error("Erro ao enviar pedido para o Firebase:", error);
-                // Adiciona mais detalhes para depuração
-                if (error.code) {
-                    console.error("Código de Erro Firebase:", error.code);
-                }
-                if (error.message) {
-                    console.error("Mensagem de Erro Firebase:", error.message);
-                }
-                showToast("Erro ao enviar pedido. Tente novamente. Verifique o console para detalhes.");
+                console.error("Erro ao salvar pedido no Firebase:", error);
+                showToast("Erro ao enviar o pedido. Tente novamente.");
             }
         }
-        
-        /**
-         * Rastreia o status de um pedido usando o ID fornecido.
-         * Busca o status no Firebase e exibe na interface.
-         */
-        function trackOrder() {
-            const orderId = orderIdInput.value.trim().toUpperCase();
-            if (!orderId) {
-                orderStatusDiv.innerText = 'Por favor, digite um código de pedido.';
-                return;
-            }
 
-            const orderRef = db.ref('orders/' + orderId);
-            
-            orderRef.once('value', (snapshot) => { // Usamos 'once' para buscar uma única vez
-                const order = snapshot.val();
-                if (order) {
-                    orderStatusDiv.innerText = `Status do Pedido ${orderId}: ${order.status}`;
-                    showToast(`Status atualizado para "${order.status}"!`);
-                } else {
-                    orderStatusDiv.innerText = 'Pedido não encontrado.';
-                    showToast('Pedido não encontrado.');
+        async function trackOrder() {
+            const orderId = orderIdInput.value.trim();
+            orderStatusDiv.innerHTML = 'Buscando...';
+            if (orderId) {
+                try {
+                    const snapshot = await db.ref('orders/' + orderId).once('value');
+                    const order = snapshot.val();
+                    if (order) {
+                        orderStatusDiv.innerHTML = `Status do pedido #${order.id}: <span style="font-weight:bold;">${order.status}</span>`;
+                    } else {
+                        orderStatusDiv.innerHTML = 'Pedido não encontrado.';
+                    }
+                } catch (error) {
+                    console.error("Erro ao buscar pedido:", error);
+                    orderStatusDiv.innerHTML = 'Erro ao buscar pedido. Tente novamente.';
                 }
-            }, (error) => {
-                console.error("Erro ao buscar pedido no Firebase:", error);
-                orderStatusDiv.innerText = 'Erro ao buscar pedido. Tente novamente.';
-                showToast('Erro ao buscar pedido.');
-            });
+            } else {
+                orderStatusDiv.innerHTML = 'Por favor, digite um código de pedido.';
+            }
         }
 
-        // --- Inicialização ---
+        // --- Event Listeners e Inicialização ---
+
+        deliveryForm.addEventListener('submit', handleDeliveryFormSubmit);
         document.addEventListener('DOMContentLoaded', () => {
-            deliveryForm.addEventListener('submit', handleDeliveryFormSubmit);
+            updateDateTime();
+            setInterval(updateDateTime, 60000);
 
-            // Carrega as configurações globais do Firebase
+            // Carrega as configurações globais e o menu do Firebase
             db.ref('settings').on('value', (snapshot) => {
-                const settings = snapshot.val();
-                if (settings) {
-                    globalSettings = settings;
-                    applyGlobalSettings();
-                } else {
-                    console.warn("Nenhuma configuração global encontrada no Firebase. Usando padrões.");
-                }
-            }, (error) => {
-                console.error("Erro ao carregar configurações globais:", error);
-                showToast('Erro ao carregar configurações.');
+                globalSettings = snapshot.val() || {};
+                applyGlobalSettings();
             });
 
-            // Carrega os dados do cardápio do Firebase em tempo real
             db.ref('menu').on('value', (snapshot) => {
-                loadingMarmitas.style.display = 'none'; // Esconde o loading
-                loadingAdicionais.style.display = 'none'; // Esconde o loading
-
-                const data = snapshot.val();
-                if (data) {
-                    menuData = data; // Atualiza a variável global com os dados do Firebase
-                    renderMenu(); // Renderiza o menu com os dados atualizados
-                } else {
-                    marmitasList.innerHTML = '<p>Nenhum item disponível no cardápio de marmitas.</p>';
-                    adicionaisList.innerHTML = '<p>Nenhum adicional disponível.</p>';
-                }
-            }, (error) => {
-                console.error("Erro ao carregar cardápio do Firebase:", error);
-                loadingMarmitas.innerText = 'Erro ao carregar cardápio.';
-                loadingAdicionais.innerText = 'Erro ao carregar adicionais.';
-                showToast('Erro ao carregar cardápio.');
+                menuData = snapshot.val() || { marmitas: {}, adicionais: {} };
+                loadingMarmitas.style.display = 'none';
+                loadingAdicionais.style.display = 'none';
+                renderMenu();
             });
-            
-            renderCart(); // Renderiza o carrinho inicialmente (vazio ou com itens salvos se houver)
-            updateDateTime(); // Atualiza a data e hora ao carregar
-            setInterval(updateDateTime, 60000); // Atualiza a cada minuto
         });
     </script>
 </body>
-</html>
+                        </html>
