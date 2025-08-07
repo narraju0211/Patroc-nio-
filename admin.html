@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Controle - Denny Martins Marmitaria</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Variáveis de Cores */
+        :root {
+            --primary-color: #e74c3c;
+            --secondary-color: #2c3e50;
+            --background-color: #f4f7f6;
+            --card-background: #ffffff;
+            --text-color: #333;
+            --light-text-color: #7f8c8d;
+            --accent-green: #28a745;
+            --accent-blue: #3498db;
+            --accent-yellow: #f1c40f;
+            --accent-red: #e74c3c;
+        }
+
+        /* Estilos básicos */
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Container principal */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background-color: var(--card-background);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            color: var(--secondary-color);
+            font-size: 2.5em;
+            margin: 10px 0 0;
+            font-weight: 700;
+        }
+
+        header p {
+            color: var(--light-text-color);
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+
+        /* Seções do Painel */
+        .admin-section {
+            background-color: var(--card-background);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .admin-section h2 {
+            color: var(--secondary-color);
+            font-size: 2em;
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 5px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        /* Formulários */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-primary { background-color: var(--primary-color); }
+        .btn-primary:hover { background-color: #c0392b; }
+        .btn-success { background-color: var(--accent-green); }
+        .btn-success:hover { background-color: #218838; }
+        .btn-danger { background-color: var(--accent-red); }
+        .btn-danger:hover { background-color: #c0392b; }
+        .btn-info { background-color: var(--accent-blue); }
+        .btn-info:hover { background-color: #2a73a6; }
+
+        /* Tabela de Pedidos */
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .orders-table th, .orders-table td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        .orders-table th {
+            background-color: var(--secondary-color);
+            color: #fff;
+            font-weight: 600;
+        }
+        .orders-table tr:hover {
+            background-color: #f1f1f1;
+        }
+        .order-actions {
+            display: flex;
+            gap: 5px;
+        }
+        .status-select {
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        /* Itens do Cardápio para Edição */
+        .menu-items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .menu-item-edit {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border: 1px solid #eee;
+        }
+        .menu-item-edit span {
+            font-weight: 600;
+        }
+        .menu-item-edit-actions {
+            display: flex;
+            gap: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Painel de Controle</h1>
+        <p>Gerencie seu negócio Denny Martins Marmitaria</p>
+    </header>
+
+    <div class="container">
+
+        <div class="admin-section">
+            <h2>Gerenciar Cardápio</h2>
+            <form id="menu-form">
+                <input type="hidden" id="menu-item-id">
+                <div class="form-group">
+                    <label for="item-name">Nome do Item</label>
+                    <input type="text" id="item-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="item-description">Descrição (opcional)</label>
+                    <textarea id="item-description"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="item-price">Preço (R$)</label>
+                    <input type="number" id="item-price" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="item-type">Tipo</label>
+                    <select id="item-type" required>
+                        <option value="marmitas">Marmita</option>
+                        <option value="adicionais">Adicional</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="item-image-url">URL da Imagem</label>
+                    <input type="text" id="item-image-url">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success" id="btn-save-menu-item">Salvar Item</button>
+                    <button type="button" class="btn btn-info" id="btn-clear-form">Limpar Formulário</button>
+                </div>
+            </form>
+            
+            <div class="menu-items-list" id="menu-items-list">
+                </div>
+        </div>
+
+        <div class="admin-section">
+            <h2>Gerenciar Pedidos</h2>
+            <div id="orders-list">
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>ID do Pedido</th>
+                            <th>Cliente</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-table-body">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+        
+    </div>
+
+    <script>
+        // --- SIMULAÇÃO DE DADOS (Substituir por Firebase) ---
+        let menuData = {
+            marmitas: [
+                { id: 1, name: 'Frango Grelhado com Legumes', description: 'Peito de frango suculento, arroz integral, feijão preto e legumes cozidos no vapor.', price: 25.00, image: 'https://via.placeholder.com/100/e74c3c/ffffff?text=Marmita+1' },
+            ],
+            adicionais: [
+                { id: 4, name: 'Coca-Cola Lata', price: 6.00, image: 'https://via.placeholder.com/100/f39c12/ffffff?text=Coke' },
+            ]
+        };
+
+        const orders = [
+            { id: 'DM123', clientName: 'João Silva', status: 'Pendente' },
+            { id: 'DM456', clientName: 'Maria Oliveira', status: 'Preparando' }
+        ];
+
+        // --- Elementos do DOM ---
+        const menuForm = document.getElementById('menu-form');
+        const menuItemsList = document.getElementById('menu-items-list');
+        const ordersTableBody = document.getElementById('orders-table-body');
+        const btnClearForm = document.getElementById('btn-clear-form');
+        
+        // --- Funções do Admin ---
+
+        function renderMenuItems() {
+            menuItemsList.innerHTML = '';
+            
+            // Renderiza marmitas
+            menuData.marmitas.forEach(item => {
+                const itemDiv = createMenuItemDiv(item);
+                menuItemsList.appendChild(itemDiv);
+            });
+            
+            // Renderiza adicionais
+            menuData.adicionais.forEach(item => {
+                const itemDiv = createMenuItemDiv(item);
+                menuItemsList.appendChild(itemDiv);
+            });
+        }
+
+        function createMenuItemDiv(item) {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'menu-item-edit';
+            itemDiv.innerHTML = `
+                <span>${item.name} - R$${item.price.toFixed(2).replace('.', ',')}</span>
+                <div class="menu-item-edit-actions">
+                    <button class="btn btn-info" onclick="editMenuItem(${item.id})">Editar</button>
+                    <button class="btn btn-danger" onclick="deleteMenuItem(${item.id})">Excluir</button>
+                </div>
+            `;
+            return itemDiv;
+        }
+
+        function renderOrders() {
+            ordersTableBody.innerHTML = '';
+            orders.forEach(order => {
+                const orderRow = document.createElement('tr');
+                orderRow.innerHTML = `
+                    <td>${order.id}</td>
+                    <td>${order.clientName}</td>
+                    <td>
+                        <select class="status-select" onchange="updateOrderStatus(${order.id}, this.value)">
+                            <option value="Pendente" ${order.status === 'Pendente' ? 'selected' : ''}>Pendente</option>
+                            <option value="Preparando" ${order.status === 'Preparando' ? 'selected' : ''}>Preparando</option>
+                            <option value="Saiu para Entrega" ${order.status === 'Saiu para Entrega' ? 'selected' : ''}>Saiu para Entrega</option>
+                            <option value="Entregue" ${order.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
+                            <option value="Cancelado" ${order.status === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
+                        </select>
+                    </td>
+                    <td class="order-actions">
+                        <button class="btn btn-info">Detalhes</button>
+                    </td>
+                `;
+                ordersTableBody.appendChild(orderRow);
+            });
+        }
+        
+        function handleMenuFormSubmit(event) {
+            event.preventDefault();
+            const itemId = document.getElementById('menu-item-id').value;
+            const itemName = document.getElementById('item-name').value;
+            const itemDescription = document.getElementById('item-description').value;
+            const itemPrice = parseFloat(document.getElementById('item-price').value);
+            const itemType = document.getElementById('item-type').value;
+            const itemImageUrl = document.getElementById('item-image-url').value;
+
+            const newItem = {
+                id: itemId || Date.now(), // Simula um ID único
+                name: itemName,
+                description: itemDescription,
+                price: itemPrice,
+                image: itemImageUrl
+            };
+            
+            // [FIREBASE] AQUI VOCÊ ENVIARIA OS DADOS PARA O FIREBASE
+            // Exemplo: firebase.database().ref('menu/' + itemType + '/' + newItem.id).set(newItem);
+
+            alert(`Item "${newItem.name}" salvo com sucesso! (SIMULAÇÃO)`);
+            clearForm();
+            renderMenuItems(); // Atualiza a lista na tela
+        }
+        
+        function editMenuItem(itemId) {
+            // [FIREBASE] AQUI VOCÊ BUSCARIA O ITEM NO BANCO DE DADOS
+            const allItems = [...menuData.marmitas, ...menuData.adicionais];
+            const itemToEdit = allItems.find(item => item.id == itemId);
+
+            if (itemToEdit) {
+                document.getElementById('menu-item-id').value = itemToEdit.id;
+                document.getElementById('item-name').value = itemToEdit.name;
+                document.getElementById('item-description').value = itemToEdit.description;
+                document.getElementById('item-price').value = itemToEdit.price;
+                // [FIREBASE] Você precisaria de um input para o tipo aqui
+                document.getElementById('item-image-url').value = itemToEdit.image;
+            }
+        }
+
+        function deleteMenuItem(itemId) {
+            if (confirm("Tem certeza que deseja excluir este item?")) {
+                // [FIREBASE] AQUI VOCÊ EXCLUIRIA O ITEM DO BANCO DE DADOS
+                alert("Item excluído! (SIMULAÇÃO)");
+                renderMenuItems(); // Atualiza a lista na tela
+            }
+        }
+
+        function updateOrderStatus(orderId, newStatus) {
+            // [FIREBASE] AQUI VOCÊ ATUALIZARIA O STATUS DO PEDIDO NO BANCO DE DADOS
+            alert(`Status do pedido ${orderId} atualizado para "${newStatus}"! (SIMULAÇÃO)`);
+        }
+
+        function clearForm() {
+            menuForm.reset();
+            document.getElementById('menu-item-id').value = '';
+        }
+
+        // --- Inicialização ---
+        document.addEventListener('DOMContentLoaded', () => {
+            menuForm.addEventListener('submit', handleMenuFormSubmit);
+            btnClearForm.addEventListener('click', clearForm);
+            
+            renderMenuItems();
+            renderOrders();
+            
+            // [FIREBASE] AQUI VOCÊ ADICIONARIA O CÓDIGO DE ESCUTA DO FIREBASE
+            // Exemplo: firebase.database().ref('menu').on('value', (snapshot) => {
+            //   menuData = snapshot.val();
+            //   renderMenuItems();
+            // });
+            // E faria o mesmo para os pedidos
+        });
+    </script>
+</body>
+                                                      </html>
