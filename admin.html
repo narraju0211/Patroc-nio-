@@ -130,6 +130,9 @@
         .btn-danger:hover { background-color: #c0392b; }
         .btn-info { background-color: var(--accent-blue); }
         .btn-info:hover { background-color: #2a73a6; }
+        .btn-warning { background-color: var(--accent-yellow); color: #333; }
+        .btn-warning:hover { background-color: #d4ac07; }
+
 
         /* Tabela de Pedidos */
         .orders-table {
@@ -153,6 +156,7 @@
         .order-actions {
             display: flex;
             gap: 5px;
+            flex-wrap: wrap; /* Para quebrar linha em telas menores */
         }
         .status-select {
             padding: 5px;
@@ -184,7 +188,7 @@
             gap: 5px;
         }
 
-        /* Modal de Confirmação */
+        /* Modal de Confirmação e Detalhes do Pedido */
         .modal {
             display: none; /* Hidden by default */
             position: fixed; /* Stay in place */
@@ -206,9 +210,10 @@
             border: 1px solid #888;
             border-radius: 10px;
             width: 80%; /* Could be more responsive */
-            max-width: 400px;
+            max-width: 500px; /* Aumentado para detalhes do pedido */
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             text-align: center;
+            position: relative; /* Para o botão de fechar */
         }
 
         .modal-content h3 {
@@ -221,7 +226,44 @@
             display: flex;
             justify-content: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
+        .modal-close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #888;
+            border: none;
+            background: none;
+        }
+        .modal-order-details {
+            text-align: left;
+            margin-top: 15px;
+            padding: 10px;
+            border: 1px dashed #eee;
+            background-color: #fcfcfc;
+            border-radius: 5px;
+        }
+        .modal-order-details p {
+            margin: 5px 0;
+        }
+        .modal-order-details strong {
+            color: var(--primary-color);
+        }
+        .modal-order-details ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
+        }
+        .modal-order-details ul li {
+            background-color: #f0f0f0;
+            padding: 8px;
+            margin-bottom: 5px;
+            border-radius: 3px;
+        }
+
 
         /* Notificação Toast */
         .toast {
@@ -262,16 +304,6 @@
             to {bottom: 0; opacity: 0;}
         }
 
-        /* Estilo para a pré-visualização da imagem */
-        #current-image-preview, #settings-logo-preview {
-            max-width: 100px;
-            max-height: 100px;
-            margin-top: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            display: block; /* Garante que a imagem ocupe sua própria linha */
-        }
-
         /* Estilos para os color pickers */
         .color-input-group {
             display: flex;
@@ -288,6 +320,40 @@
         }
         .color-input-group input[type="text"] {
             flex-grow: 1;
+        }
+
+        /* Tabs para Pedidos */
+        .order-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+        .order-tab-button {
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            margin-right: 5px;
+            font-weight: 600;
+            color: var(--secondary-color);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        .order-tab-button.active {
+            background-color: var(--primary-color);
+            color: #fff;
+            border-color: var(--primary-color);
+        }
+        .order-tab-button:hover:not(.active) {
+            background-color: #e0e0e0;
+        }
+        .order-tab-content {
+            display: none; /* Esconde o conteúdo das abas por padrão */
+        }
+        .order-tab-content.active {
+            display: block; /* Mostra o conteúdo da aba ativa */
         }
     </style>
 </head>
@@ -313,11 +379,11 @@
                     <input type="text" id="marmitaria-slogan-input">
                 </div>
                 <!-- Logo agora é fixa, removido upload -->
-                <!-- <div class="form-group">
-                    <label for="settings-logo-upload">Upload da Logo</label>
-                    <input type="file" id="settings-logo-upload" accept="image/*">
-                    <img id="settings-logo-preview" src="" alt="Pré-visualização da logo atual" style="display:none;">
-                </div> -->
+                <div class="form-group">
+                    <label>Logo Atual (Fixa)</label>
+                    <img src="http://googleusercontent.com/file_content/11" alt="Logo da Marmitaria" style="max-width: 100px; height: auto; border-radius: 50%; border: 2px solid var(--primary-color);">
+                    <p style="font-size: 0.8em; color: var(--light-text-color);">A logo é fixa e não pode ser alterada por aqui.</p>
+                </div>
                 <div class="form-group">
                     <label for="logo-position-select">Posição da Logo no Site</label>
                     <select id="logo-position-select">
@@ -362,11 +428,6 @@
                     </select>
                 </div>
                 <!-- Campo de imagem removido, usará placeholder no cliente -->
-                <!-- <div class="form-group">
-                    <label for="item-image-upload">Upload de Imagem</label>
-                    <input type="file" id="item-image-upload" accept="image/*">
-                    <img id="current-image-preview" src="" alt="Pré-visualização da imagem atual" style="display:none;">
-                </div> -->
                 <div class="form-actions">
                     <button type="submit" class="btn btn-success" id="btn-save-menu-item">Salvar Item</button>
                     <button type="button" class="btn btn-info" id="btn-clear-form">Limpar Formulário</button>
@@ -380,7 +441,32 @@
 
         <div class="admin-section">
             <h2>Gerenciar Pedidos</h2>
-            <div id="orders-list">
+            <div class="order-tabs">
+                <button class="order-tab-button active" data-tab="new-orders">Novos Pedidos</button>
+                <button class="order-tab-button" data-tab="accepted-orders">Pedidos Aceitos</button>
+                <button class="order-tab-button" data-tab="completed-orders">Pedidos Encerrados</button>
+            </div>
+
+            <div id="new-orders-tab" class="order-tab-content active">
+                <h3>Pedidos Pendentes de Confirmação</h3>
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>ID do Pedido</th>
+                            <th>Cliente</th>
+                            <th>Total</th>
+                            <th>Data/Hora</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="new-orders-table-body">
+                        <p id="loading-new-orders">Carregando novos pedidos...</p>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="accepted-orders-tab" class="order-tab-content">
+                <h3>Pedidos Aceitos e em Andamento</h3>
                 <table class="orders-table">
                     <thead>
                         <tr>
@@ -392,8 +478,27 @@
                             <th>Ações</th>
                         </tr>
                     </thead>
-                    <tbody id="orders-table-body">
-                        <p id="loading-orders">Carregando pedidos...</p>
+                    <tbody id="accepted-orders-table-body">
+                        <p id="loading-accepted-orders">Carregando pedidos aceitos...</p>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="completed-orders-tab" class="order-tab-content">
+                <h3>Pedidos Encerrados (Entregues/Recusados)</h3>
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>ID do Pedido</th>
+                            <th>Cliente</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Data/Hora</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="completed-orders-table-body">
+                        <p id="loading-completed-orders">Carregando pedidos encerrados...</p>
                     </tbody>
                 </table>
             </div>
@@ -401,14 +506,30 @@
         
     </div>
 
-    <!-- Modal de Confirmação -->
+    <!-- Modal de Confirmação/Detalhes do Pedido -->
+    <div id="orderDetailModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close-btn" onclick="closeModal()">&times;</button>
+            <h3 id="modalTitle">Detalhes do Pedido</h3>
+            <div id="modal-order-details-content" class="modal-order-details">
+                <!-- Detalhes do pedido serão carregados aqui -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-success" id="acceptOrderBtn">Aceitar Pedido</button>
+                <button class="btn btn-danger" id="rejectOrderBtn">Recusar Pedido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação Genérica (para exclusão, etc.) -->
     <div id="confirmationModal" class="modal">
         <div class="modal-content">
+            <button class="modal-close-btn" onclick="closeModal()">&times;</button>
             <h3>Confirmação</h3>
-            <p id="modalMessage"></p>
+            <p id="confirmationModalMessage"></p>
             <div class="modal-actions">
-                <button class="btn btn-danger" id="modalConfirmBtn">Sim</button>
-                <button class="btn btn-info" id="modalCancelBtn">Não</button>
+                <button class="btn btn-danger" id="confirmationModalConfirmBtn">Sim</button>
+                <button class="btn btn-info" id="confirmationModalCancelBtn">Não</button>
             </div>
         </div>
     </div>
@@ -419,7 +540,6 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <!-- Firebase Storage SDK removido -->
 
     <script>
         // Firebase configuration
@@ -436,39 +556,54 @@
         // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.database(); // Get a reference to the database service
-        // const storage = firebase.storage(); // Firebase Storage removido
 
         // --- Variáveis de Estado ---
         let menuData = { marmitas: {}, adicionais: {} }; // Usará objetos para mapear por ID do Firebase
-        let orders = {}; // Usará objeto para mapear por ID do Firebase
+        let allOrders = {}; // Armazena todos os pedidos brutos do Firebase
         let globalSettings = {}; // Para armazenar as configurações da marmitaria
+        let currentOrderIdInModal = null; // Para saber qual pedido está na modal de detalhes
 
         // --- Elementos do DOM ---
         const menuForm = document.getElementById('menu-form');
         const menuItemsList = document.getElementById('menu-items-list');
-        const ordersTableBody = document.getElementById('orders-table-body');
         const btnClearForm = document.getElementById('btn-clear-form');
-        const loadingMenuItems = document.getElementById('loading-menu-items');
-        const loadingOrders = document.getElementById('loading-orders');
-        // const itemImageUpload = document.getElementById('item-image-upload'); // Removido
-        // const currentImagePreview = document.getElementById('current-image-preview'); // Removido
 
         // Settings form elements
         const settingsForm = document.getElementById('settings-form');
         const marmitariaNameInput = document.getElementById('marmitaria-name-input');
         const marmitariaSloganInput = document.getElementById('marmitaria-slogan-input');
-        // const settingsLogoUpload = document.getElementById('settings-logo-upload'); // Removido
-        // const settingsLogoPreview = document.getElementById('settings-logo-preview'); // Removido
         const logoPositionSelect = document.getElementById('logo-position-select');
         const dailyColorsInputsDiv = document.getElementById('daily-colors-inputs');
         const currentDateTime = document.getElementById('current-datetime');
 
+        // Order tab elements
+        const orderTabButtons = document.querySelectorAll('.order-tab-button');
+        const newOrdersTab = document.getElementById('new-orders-tab');
+        const acceptedOrdersTab = document.getElementById('accepted-orders-tab');
+        const completedOrdersTab = document.getElementById('completed-orders-tab');
 
-        // Modal elements
+        // Order table bodies
+        const newOrdersTableBody = document.getElementById('new-orders-table-body');
+        const acceptedOrdersTableBody = document.getElementById('accepted-orders-table-body');
+        const completedOrdersTableBody = document.getElementById('completed-orders-table-body');
+
+        // Loading messages for orders
+        const loadingNewOrders = document.getElementById('loading-new-orders');
+        const loadingAcceptedOrders = document.getElementById('loading-accepted-orders');
+        const loadingCompletedOrders = document.getElementById('loading-completed-orders');
+
+        // Order Detail Modal elements
+        const orderDetailModal = document.getElementById('orderDetailModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalOrderDetailsContent = document.getElementById('modal-order-details-content');
+        const acceptOrderBtn = document.getElementById('acceptOrderBtn');
+        const rejectOrderBtn = document.getElementById('rejectOrderBtn');
+
+        // Generic Confirmation Modal elements
         const confirmationModal = document.getElementById('confirmationModal');
-        const modalMessage = document.getElementById('modalMessage');
-        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
-        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        const confirmationModalMessage = document.getElementById('confirmationModalMessage');
+        const confirmationModalConfirmBtn = document.getElementById('confirmationModalConfirmBtn');
+        const confirmationModalCancelBtn = document.getElementById('confirmationModalCancelBtn');
 
         // Toast element
         const toast = document.getElementById('toast');
@@ -496,26 +631,35 @@
          */
         function showConfirmationModal(message) {
             return new Promise((resolve) => {
-                modalMessage.innerText = message;
+                confirmationModalMessage.innerText = message;
                 confirmationModal.style.display = 'flex'; // Use flex para centralizar
 
                 const confirmHandler = () => {
-                    confirmationModal.style.display = 'none';
-                    modalConfirmBtn.removeEventListener('click', confirmHandler);
-                    modalCancelBtn.removeEventListener('click', cancelHandler);
+                    closeModal(); // Fecha a modal genérica
+                    confirmationModalConfirmBtn.removeEventListener('click', confirmHandler);
+                    confirmationModalCancelBtn.removeEventListener('click', cancelHandler);
                     resolve(true);
                 };
 
                 const cancelHandler = () => {
-                    confirmationModal.style.display = 'none';
-                    modalConfirmBtn.removeEventListener('click', confirmHandler);
-                    modalCancelBtn.removeEventListener('click', cancelHandler);
+                    closeModal(); // Fecha a modal genérica
+                    confirmationModalConfirmBtn.removeEventListener('click', confirmHandler);
+                    confirmationModalCancelBtn.removeEventListener('click', cancelHandler);
                     resolve(false);
                 };
 
-                modalConfirmBtn.addEventListener('click', confirmHandler);
-                modalCancelBtn.addEventListener('click', cancelHandler);
+                confirmationModalConfirmBtn.addEventListener('click', confirmHandler);
+                confirmationModalCancelBtn.addEventListener('click', cancelHandler);
             });
+        }
+
+        /**
+         * Fecha qualquer modal aberta.
+         */
+        function closeModal() {
+            orderDetailModal.style.display = 'none';
+            confirmationModal.style.display = 'none';
+            currentOrderIdInModal = null; // Limpa o ID do pedido na modal
         }
 
         /**
@@ -534,7 +678,6 @@
 
             currentDateTime.innerText = `Bom dia! Hoje é ${dayOfWeek}, ${dayOfMonth} de ${month} de ${year} às ${hours}:${minutes}.`;
         }
-
 
         // --- Funções de Renderização e Lógica do Admin ---
 
@@ -576,14 +719,6 @@
         function fillSettingsForm() {
             if (globalSettings.name) marmitariaNameInput.value = globalSettings.name;
             if (globalSettings.slogan) marmitariaSloganInput.value = globalSettings.slogan;
-            // Logo agora é fixa, não preenchemos o preview aqui
-            // if (globalSettings.logoUrl) {
-            //     settingsLogoPreview.src = globalSettings.logoUrl;
-            //     settingsLogoPreview.style.display = 'block';
-            // } else {
-            //     settingsLogoPreview.style.display = 'none';
-            //     settingsLogoPreview.src = '';
-            // }
             if (globalSettings.logoPosition) logoPositionSelect.value = globalSettings.logoPosition;
             renderDailyColorsInputs(); // Renderiza os inputs de cor com os valores atuais
         }
@@ -622,7 +757,6 @@
                 showToast("Erro ao salvar configurações. Tente novamente. Verifique o console para detalhes.");
             }
         }
-
 
         /**
          * Renderiza os itens do cardápio na lista de edição.
@@ -678,48 +812,95 @@
         }
 
         /**
-         * Renderiza a tabela de pedidos.
-         * Busca os dados de `orders` (populados pelo Firebase) e os exibe.
+         * Renderiza a tabela de pedidos em suas respectivas abas.
          */
         function renderOrders() {
-            ordersTableBody.innerHTML = ''; // Limpa a tabela antes de renderizar
-            loadingOrders.style.display = 'none'; // Esconde o loading
+            newOrdersTableBody.innerHTML = '';
+            acceptedOrdersTableBody.innerHTML = '';
+            completedOrdersTableBody.innerHTML = '';
 
-            if (orders && Object.keys(orders).length > 0) {
-                // Converte o objeto de pedidos em um array para poder ordenar
-                const sortedOrders = Object.entries(orders).sort(([, a], [, b]) => {
-                    // Ordena do mais novo para o mais antigo
-                    return (b.timestamp || 0) - (a.timestamp || 0);
-                });
+            loadingNewOrders.style.display = 'none';
+            loadingAcceptedOrders.style.display = 'none';
+            loadingCompletedOrders.style.display = 'none';
 
-                sortedOrders.forEach(([orderId, order]) => {
-                    const orderRow = document.createElement('tr');
-                    const total = order.total ? order.total.toFixed(2).replace('.', ',') : '0,00';
-                    const orderDate = order.timestamp ? new Date(order.timestamp).toLocaleString('pt-BR') : 'N/A';
+            let hasNewOrders = false;
+            let hasAcceptedOrders = false;
+            let hasCompletedOrders = false;
 
-                    orderRow.innerHTML = `
-                        <td>${orderId}</td>
-                        <td>${order.clientName}</td>
-                        <td>R$ ${total}</td>
-                        <td>
-                            <select class="status-select" onchange="updateOrderStatus('${orderId}', this.value)">
-                                <option value="Pendente" ${order.status === 'Pendente' ? 'selected' : ''}>Pendente</option>
-                                <option value="Preparando" ${order.status === 'Preparando' ? 'selected' : ''}>Preparando</option>
-                                <option value="Saiu para Entrega" ${order.status === 'Saiu para Entrega' ? 'selected' : ''}>Saiu para Entrega</option>
-                                <option value="Entregue" ${order.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
-                                <option value="Cancelado" ${order.status === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
-                            </select>
-                        </td>
-                        <td>${orderDate}</td>
-                        <td class="order-actions">
-                            <button class="btn btn-info" onclick="showOrderDetails('${orderId}')">Detalhes</button>
-                        </td>
+            // Converte o objeto de pedidos em um array para poder ordenar
+            const sortedOrders = Object.entries(allOrders).sort(([, a], [, b]) => {
+                // Ordena do mais novo para o mais antigo
+                return (b.timestamp || 0) - (a.timestamp || 0);
+            });
+
+            sortedOrders.forEach(([orderId, order]) => {
+                const orderDate = order.timestamp ? new Date(order.timestamp).toLocaleString('pt-BR') : 'N/A';
+                const total = order.total ? order.total.toFixed(2).replace('.', ',') : '0,00';
+                
+                const orderRow = document.createElement('tr');
+                orderRow.innerHTML = `
+                    <td>${orderId}</td>
+                    <td>${order.clientName}</td>
+                    <td>R$ ${total}</td>
+                    <td>${order.status}</td>
+                    <td>${orderDate}</td>
+                    <td class="order-actions">
+                        <!-- Ações específicas para cada aba/status -->
+                    </td>
+                `;
+
+                const actionsCell = orderRow.querySelector('.order-actions');
+
+                if (order.status === 'Pendente') {
+                    orderRow.cells[3].innerText = 'Pendente'; // Garante que o status na coluna seja "Pendente"
+                    actionsCell.innerHTML = `
+                        <button class="btn btn-info" onclick="showOrderDetails('${orderId}')">Ver Detalhes</button>
                     `;
-                    ordersTableBody.appendChild(orderRow);
-                });
-            } else {
-                ordersTableBody.innerHTML = '<tr><td colspan="6">Nenhum pedido encontrado.</td></tr>';
+                    newOrdersTableBody.appendChild(orderRow);
+                    hasNewOrders = true;
+                } else if (['Aceito', 'Preparando', 'Saiu para Entrega'].includes(order.status)) {
+                    actionsCell.innerHTML = `
+                        <select class="status-select" onchange="updateOrderStatus('${orderId}', this.value)">
+                            <option value="Aceito" ${order.status === 'Aceito' ? 'selected' : ''}>Aceito</option>
+                            <option value="Preparando" ${order.status === 'Preparando' ? 'selected' : ''}>Preparando</option>
+                            <option value="Saiu para Entrega" ${order.status === 'Saiu para Entrega' ? 'selected' : ''}>Saiu para Entrega</option>
+                        </select>
+                        <button class="btn btn-warning" onclick="completeOrder('${orderId}')">Encerrar Pedido</button>
+                    `;
+                    acceptedOrdersTableBody.appendChild(orderRow);
+                    hasAcceptedOrders = true;
+                } else if (['Entregue', 'Cancelado', 'Recusado', 'Encerrado'].includes(order.status)) {
+                    actionsCell.innerHTML = `
+                        <button class="btn btn-info" onclick="showOrderDetails('${orderId}')">Ver Detalhes</button>
+                    `;
+                    completedOrdersTableBody.appendChild(orderRow);
+                    hasCompletedOrders = true;
+                }
+            });
+
+            if (!hasNewOrders) {
+                newOrdersTableBody.innerHTML = '<tr><td colspan="5">Nenhum novo pedido pendente.</td></tr>';
             }
+            if (!hasAcceptedOrders) {
+                acceptedOrdersTableBody.innerHTML = '<tr><td colspan="6">Nenhum pedido aceito ou em andamento.</td></tr>';
+            }
+            if (!hasCompletedOrders) {
+                completedOrdersTableBody.innerHTML = '<tr><td colspan="6">Nenhum pedido encerrado.</td></tr>';
+            }
+        }
+
+        /**
+         * Lida com a troca de abas de pedidos.
+         * @param {string} tabId - O ID da aba a ser ativada ('new-orders', 'accepted-orders', 'completed-orders').
+         */
+        function switchOrderTab(tabId) {
+            // Remove 'active' de todos os botões e conteúdos
+            orderTabButtons.forEach(button => button.classList.remove('active'));
+            document.querySelectorAll('.order-tab-content').forEach(content => content.classList.remove('active'));
+
+            // Adiciona 'active' ao botão e conteúdo corretos
+            document.querySelector(`.order-tab-button[data-tab="${tabId}"]`).classList.add('active');
+            document.getElementById(`${tabId}-tab`).classList.add('active');
         }
         
         /**
@@ -775,11 +956,6 @@
                 document.getElementById('item-description').value = itemToEdit.description;
                 document.getElementById('item-price').value = itemToEdit.price;
                 document.getElementById('item-type').value = itemType; // Define o tipo correto
-                
-                // Imagem não é mais editável via upload aqui
-                // currentImagePreview.style.display = 'none';
-                // currentImagePreview.src = '';
-                // itemImageUpload.value = '';
                 showToast(`Editando item: ${itemToEdit.name}`);
             } else {
                 showToast('Item não encontrado para edição.');
@@ -795,7 +971,6 @@
             const confirmed = await showConfirmationModal("Tem certeza que deseja excluir este item?");
             if (confirmed) {
                 try {
-                    // Não há imagem para excluir do Storage, pois o upload foi removido
                     await db.ref(`menu/${itemType}/${itemId}`).remove();
                     showToast("Item excluído com sucesso!");
                 } catch (error) {
@@ -806,7 +981,90 @@
         }
 
         /**
-         * Atualiza o status de um pedido no Firebase.
+         * Exibe os detalhes de um pedido em uma modal e permite aceitar/recusar.
+         * @param {string} orderId - O ID do pedido.
+         */
+        function showOrderDetails(orderId) {
+            const order = allOrders[orderId];
+            if (!order) {
+                showToast('Pedido não encontrado.');
+                return;
+            }
+
+            currentOrderIdInModal = orderId; // Armazena o ID do pedido atual na modal
+
+            modalTitle.innerText = `Detalhes do Pedido #${orderId}`;
+            let detailsHtml = `
+                <p><strong>Cliente:</strong> ${order.clientName}</p>
+                <p><strong>Endereço:</strong> ${order.clientAddress}</p>
+                <p><strong>Telefone:</strong> ${order.clientPhone}</p>
+                <p><strong>Pagamento:</strong> ${order.paymentMethod}</p>
+                <p><strong>Total:</strong> R$ ${order.total ? order.total.toFixed(2).replace('.', ',') : '0,00'}</p>
+                <p><strong>Status:</strong> ${order.status}</p>
+                <p><strong>Data/Hora:</strong> ${order.timestamp ? new Date(order.timestamp).toLocaleString('pt-BR') : 'N/A'}</p>
+                <h4>Itens do Pedido:</h4>
+                <ul>
+            `;
+            if (order.items && Array.isArray(order.items)) {
+                order.items.forEach(item => {
+                    detailsHtml += `<li>${item.quantity}x ${item.name} (R$ ${item.price ? item.price.toFixed(2).replace('.', ',') : '0,00'})</li>`;
+                });
+            } else {
+                detailsHtml += '<li>Nenhum item detalhado disponível.</li>';
+            }
+            detailsHtml += `</ul>`;
+            modalOrderDetailsContent.innerHTML = detailsHtml;
+
+            // Mostra/esconde botões de aceitar/recusar dependendo do status
+            if (order.status === 'Pendente') {
+                acceptOrderBtn.style.display = 'inline-block';
+                rejectOrderBtn.style.display = 'inline-block';
+            } else {
+                acceptOrderBtn.style.display = 'none';
+                rejectOrderBtn.style.display = 'none';
+            }
+
+            orderDetailModal.style.display = 'flex'; // Exibe a modal de detalhes
+        }
+
+        /**
+         * Aceita um pedido, mudando seu status para 'Aceito'.
+         */
+        async function acceptOrder() {
+            if (!currentOrderIdInModal) return;
+            const confirmed = await showConfirmationModal(`Tem certeza que deseja aceitar o pedido #${currentOrderIdInModal}?`);
+            if (confirmed) {
+                try {
+                    await db.ref(`orders/${currentOrderIdInModal}`).update({ status: 'Aceito' });
+                    showToast(`Pedido #${currentOrderIdInModal} aceito!`);
+                    closeModal(); // Fecha a modal após a ação
+                } catch (error) {
+                    console.error("Erro ao aceitar pedido:", error);
+                    showToast("Erro ao aceitar pedido. Tente novamente.");
+                }
+            }
+        }
+
+        /**
+         * Recusa um pedido, mudando seu status para 'Recusado'.
+         */
+        async function rejectOrder() {
+            if (!currentOrderIdInModal) return;
+            const confirmed = await showConfirmationModal(`Tem certeza que deseja recusar o pedido #${currentOrderIdInModal}?`);
+            if (confirmed) {
+                try {
+                    await db.ref(`orders/${currentOrderIdInModal}`).update({ status: 'Recusado' });
+                    showToast(`Pedido #${currentOrderIdInModal} recusado!`);
+                    closeModal(); // Fecha a modal após a ação
+                } catch (error) {
+                    console.error("Erro ao recusar pedido:", error);
+                    showToast("Erro ao recusar pedido. Tente novamente.");
+                }
+            }
+        }
+
+        /**
+         * Atualiza o status de um pedido no Firebase (usado para pedidos aceitos).
          * @param {string} orderId - O ID do pedido (chave do Firebase).
          * @param {string} newStatus - O novo status do pedido.
          */
@@ -821,30 +1079,19 @@
         }
 
         /**
-         * Exibe os detalhes de um pedido em uma modal.
+         * Encerra um pedido, mudando seu status para 'Encerrado'.
          * @param {string} orderId - O ID do pedido.
          */
-        function showOrderDetails(orderId) {
-            const order = orders[orderId];
-            if (order) {
-                let details = `Detalhes do Pedido #${orderId}:\n`;
-                details += `Cliente: ${order.clientName}\n`;
-                details += `Endereço: ${order.clientAddress}\n`;
-                details += `Telefone: ${order.clientPhone}\n`;
-                details += `Pagamento: ${order.paymentMethod}\n`;
-                details += `Total: R$ ${order.total ? order.total.toFixed(2).replace('.', ',') : '0,00'}\n`;
-                details += `Status: ${order.status}\n\n`;
-                details += 'Itens:\n';
-                if (order.items && Array.isArray(order.items)) {
-                    order.items.forEach(item => {
-                        details += `- ${item.quantity}x ${item.name} (R$ ${item.price ? item.price.toFixed(2).replace('.', ',') : '0,00'})\n`;
-                    });
-                } else {
-                    details += 'Nenhum item detalhado disponível.\n';
+        async function completeOrder(orderId) {
+            const confirmed = await showConfirmationModal(`Tem certeza que deseja encerrar o pedido #${orderId}? Isso o moverá para a lista de pedidos encerrados.`);
+            if (confirmed) {
+                try {
+                    await db.ref(`orders/${orderId}`).update({ status: 'Encerrado' });
+                    showToast(`Pedido #${orderId} encerrado!`);
+                } catch (error) {
+                    console.error("Erro ao encerrar pedido:", error);
+                    showToast("Erro ao encerrar pedido. Tente novamente.");
                 }
-                showConfirmationModal(details); // Reutiliza a modal para exibir detalhes
-            } else {
-                showToast('Detalhes do pedido não encontrados.');
             }
         }
 
@@ -854,9 +1101,6 @@
         function clearForm() {
             menuForm.reset();
             document.getElementById('menu-item-id').value = ''; // Limpa o ID oculto
-            // currentImagePreview.style.display = 'none'; // Removido
-            // currentImagePreview.src = ''; // Removido
-            // itemImageUpload.value = ''; // Removido
             showToast("Formulário limpo.");
         }
 
@@ -865,6 +1109,31 @@
             menuForm.addEventListener('submit', handleMenuFormSubmit);
             btnClearForm.addEventListener('click', clearForm);
             settingsForm.addEventListener('submit', handleSettingsFormSubmit);
+
+            // Adiciona listeners para os botões da modal de detalhes do pedido
+            acceptOrderBtn.addEventListener('click', acceptOrder);
+            rejectOrderBtn.addEventListener('click', rejectOrder);
+            // Adiciona listener para fechar a modal clicando no X
+            document.querySelectorAll('.modal-close-btn').forEach(btn => {
+                btn.addEventListener('click', closeModal);
+            });
+            // Adiciona listener para fechar a modal clicando fora dela
+            window.addEventListener('click', (event) => {
+                if (event.target === orderDetailModal || event.target === confirmationModal) {
+                    closeModal();
+                }
+            });
+
+            // Adiciona listeners para as abas de pedidos
+            orderTabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabId = button.dataset.tab;
+                    switchOrderTab(tabId);
+                });
+            });
+            // Ativa a primeira aba por padrão
+            switchOrderTab('new-orders');
+
 
             // Listener para as configurações globais
             db.ref('settings').on('value', (snapshot) => {
@@ -896,14 +1165,17 @@
 
             // Listener para os pedidos
             db.ref('orders').on('value', (snapshot) => {
-                ordersTableBody.innerHTML = ''; // Limpa a tabela antes de renderizar
-                loadingOrders.style.display = 'none'; // Esconde a mensagem de carregamento
+                loadingNewOrders.style.display = 'none';
+                loadingAcceptedOrders.style.display = 'none';
+                loadingCompletedOrders.style.display = 'none';
                 const data = snapshot.val();
-                orders = data || {}; // Garante que seja um objeto
-                renderOrders();
+                allOrders = data || {}; // Armazena todos os pedidos
+                renderOrders(); // Renderiza todos os pedidos nas abas corretas
             }, (error) => {
                 console.error("Erro ao carregar pedidos do Firebase:", error);
-                loadingOrders.innerText = 'Erro ao carregar pedidos.';
+                loadingNewOrders.innerText = 'Erro ao carregar pedidos.';
+                loadingAcceptedOrders.innerText = ''; // Limpa se houver erro
+                loadingCompletedOrders.innerText = ''; // Limpa se houver erro
                 showToast('Erro ao carregar pedidos.');
             });
 
