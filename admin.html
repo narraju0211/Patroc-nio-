@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Denny Martins Marmitaria - Delivery de Marmitas</title>
+    <title>Painel de Controle - Denny Martins Marmitaria</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
@@ -17,6 +17,9 @@
             --text-color: #333;
             --light-text-color: #7f8c8d;
             --accent-green: #28a745;
+            --accent-blue: #3498db;
+            --accent-yellow: #f1c40f;
+            --accent-red: #e74c3c;
         }
 
         /* Estilos básicos */
@@ -37,83 +40,78 @@
             padding: 20px;
         }
 
+        /* Login Page */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+        .login-box {
+            background-color: var(--card-background);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 400px;
+        }
+        .login-box h1 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+        .login-box input {
+            margin-bottom: 15px;
+            width: calc(100% - 22px);
+        }
+        .login-box button {
+            width: 100%;
+            padding: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
         /* Header */
         header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            padding: 20px;
+            text-align: center;
+            padding: 40px 20px;
             background-color: var(--card-background);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
             margin-bottom: 20px;
-            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-
-        /* Classes para posição do logo/header */
-        .header-align-left { justify-content: flex-start; text-align: left; }
-        .header-align-center { justify-content: center; text-align: center; }
-        .header-align-right { justify-content: flex-end; text-align: right; }
-
-        @media (min-width: 768px) {
-            header {
-                flex-direction: row;
-                justify-content: space-between;
-                padding: 20px 40px;
-            }
-            header .logo-container {
-                display: flex;
-                align-items: center;
-            }
-            header h1 {
-                margin: 0 0 0 15px;
-            }
-            header p {
-                text-align: right;
-            }
-            .header-align-left h1 { margin-left: 15px; margin-right: 0; }
-            .header-align-center h1 { margin-left: 15px; margin-right: 15px; }
-            .header-align-right h1 { margin-left: 0; margin-right: 15px; }
-            .header-align-left p { text-align: left; }
-            .header-align-center p { text-align: center; }
-            .header-align-right p { text-align: right; }
+        .header-left {
+            text-align: left;
         }
-
+        .header-right {
+            text-align: right;
+        }
         header h1 {
-            color: var(--primary-color);
-            font-size: 2.2em;
-            margin: 10px 0 0;
+            color: var(--secondary-color);
+            font-size: 2.5em;
+            margin: 0;
             font-weight: 700;
         }
-
-        header img {
-            max-width: 100px;
-            height: auto;
-            border-radius: 50%;
-            border: 2px solid var(--primary-color);
-        }
-
         header p {
             color: var(--light-text-color);
-            font-size: 1em;
-            margin-top: 5px;
+            font-size: 1.2em;
+            margin: 0;
         }
-
         .header-info {
             font-size: 0.9em;
             color: var(--light-text-color);
-            margin-top: 10px;
+            margin-top: 5px;
+        }
+        .btn-logout {
+            padding: 8px 12px;
+            font-size: 0.9em;
+            background-color: var(--accent-red);
         }
 
-        /* Layout de Conteúdo */
-        .content-wrapper {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-        }
-
-        /* Seções de Cardápio */
-        .menu-section {
+        /* Seções do Painel */
+        .admin-section {
             background-color: var(--card-background);
             padding: 20px;
             border-radius: 10px;
@@ -121,7 +119,7 @@
             margin-bottom: 20px;
         }
 
-        .menu-section h2 {
+        .admin-section h2 {
             color: var(--secondary-color);
             font-size: 2em;
             border-bottom: 3px solid var(--primary-color);
@@ -130,75 +128,205 @@
             font-weight: 600;
         }
 
-        /* Itens do Cardápio */
-        .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            padding: 15px;
-            border-bottom: 1px solid #eee;
-            transition: background-color 0.3s ease;
-        }
-        .menu-item:last-child {
-            border-bottom: none;
+        /* Formulários */
+        .form-group {
+            margin-bottom: 15px;
         }
 
-        .menu-item:hover {
-            background-color: #f9f9f9;
-        }
-
-        .item-image {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 8px;
-        }
-
-        .item-details {
-            flex-grow: 1;
-        }
-
-        .item-details h3 {
-            margin: 0;
-            color: var(--secondary-color);
-            font-size: 1.2em;
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
             font-weight: 600;
         }
 
-        .item-details p {
-            margin: 5px 0 0;
-            color: var(--light-text-color);
-            font-size: 0.9em;
-        }
-
-        .item-actions {
-            text-align: right;
-            white-space: nowrap;
-        }
-
-        .item-price {
-            display: block;
-            font-size: 1.4em;
-            font-weight: 700;
-            color: var(--primary-color);
-            margin-bottom: 5px;
-        }
-
-        .btn-add {
-            background-color: var(--accent-green);
-            color: #fff;
-            border: none;
-            padding: 8px 12px;
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
             border-radius: 5px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        
+        .form-group input[type="file"] {
+            padding: 0;
+        }
+        .form-group input::-webkit-file-upload-button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--accent-blue);
+            color: #fff;
             cursor: pointer;
-            font-size: 0.9em;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
             transition: background-color 0.3s ease;
         }
-        .btn-add:hover {
-            background-color: #218838;
+
+        .btn-primary { background-color: var(--primary-color); }
+        .btn-primary:hover { background-color: #c0392b; }
+        .btn-success { background-color: var(--accent-green); }
+        .btn-success:hover { background-color: #218838; }
+        .btn-danger { background-color: var(--accent-red); }
+        .btn-danger:hover { background-color: #c0392b; }
+        .btn-info { background-color: var(--accent-blue); }
+        .btn-info:hover { background-color: #2a73a6; }
+        .btn-warning { background-color: var(--accent-yellow); color: #333; }
+        .btn-warning:hover { background-color: #d4ac07; }
+
+        /* Tabela de Pedidos */
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .orders-table th, .orders-table td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            vertical-align: top;
+        }
+        .orders-table th {
+            background-color: var(--secondary-color);
+            color: #fff;
+            font-weight: 600;
+        }
+        .orders-table tr:hover {
+            background-color: #f1f1f1;
+        }
+        .order-actions {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        .status-select {
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            cursor: pointer;
         }
 
-        /* Notificação de sucesso (Toast) */
+        /* Itens do Cardápio para Edição */
+        .menu-items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .menu-item-edit {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border: 1px solid #eee;
+        }
+        .menu-item-edit span {
+            font-weight: 600;
+        }
+        .menu-item-edit-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .current-item-image {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        /* Modal de Confirmação e Detalhes do Pedido */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            text-align: center;
+            position: relative;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            color: var(--secondary-color);
+        }
+
+        .modal-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .modal-close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #888;
+            border: none;
+            background: none;
+        }
+        .modal-order-details {
+            text-align: left;
+            margin-top: 15px;
+            padding: 10px;
+            border: 1px dashed #eee;
+            background-color: #fcfcfc;
+            border-radius: 5px;
+        }
+        .modal-order-details p {
+            margin: 5px 0;
+        }
+        .modal-order-details strong {
+            color: var(--primary-color);
+        }
+        .modal-order-details ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
+        }
+        .modal-order-details ul li {
+            background-color: #f0f0f0;
+            padding: 8px;
+            margin-bottom: 5px;
+            border-radius: 3px;
+        }
+
+        /* Notificação Toast */
         .toast {
             visibility: hidden;
             min-width: 250px;
@@ -208,7 +336,7 @@
             border-radius: 8px;
             padding: 16px;
             position: fixed;
-            z-index: 1;
+            z-index: 1001;
             left: 50%;
             transform: translateX(-50%);
             bottom: 30px;
@@ -237,216 +365,257 @@
             to {bottom: 0; opacity: 0;}
         }
 
-        /* Carrinho e Checkout */
-        .cart-section, .checkout-section, .order-tracking-section {
-            background-color: var(--card-background);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            margin-bottom: 20px;
-            height: fit-content;
-        }
-
-        .cart-section h2, .checkout-section h2, .order-tracking-section h2 {
-            color: var(--secondary-color);
-            font-size: 1.8em;
-            border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 5px;
-            margin-bottom: 20px;
-        }
-
-        .cart-item {
+        /* Estilos para os color pickers */
+        .color-input-group {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px dashed #ddd;
+            gap: 10px;
+            margin-bottom: 5px;
         }
-        .cart-item:last-child {
-            border-bottom: none;
-        }
-
-        .cart-item-name {
-            font-weight: 600;
-        }
-
-        .cart-item-remove {
-            color: var(--primary-color);
+        .color-input-group input[type="color"] {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border: none;
             cursor: pointer;
-            font-size: 0.9em;
-            text-decoration: underline;
+        }
+        .color-input-group input[type="text"] {
+            flex-grow: 1;
         }
 
-        .cart-summary {
-            margin-top: 20px;
-            border-top: 2px solid var(--secondary-color);
-            padding-top: 15px;
-            font-size: 1.2em;
-            font-weight: 700;
+        /* Tabs para Pedidos */
+        .order-tabs {
             display: flex;
-            justify-content: space-between;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
         }
-
-        .btn-checkout {
-            width: 100%;
+        .order-tab-button {
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            margin-right: 5px;
+            font-weight: 600;
+            color: var(--secondary-color);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        .order-tab-button.active {
             background-color: var(--primary-color);
             color: #fff;
-            border: none;
-            padding: 15px;
-            border-radius: 5px;
-            font-size: 1.2em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            margin-top: 20px;
+            border-color: var(--primary-color);
         }
-        .btn-checkout:hover {
-            background-color: #c0392b;
+        .order-tab-button:hover:not(.active) {
+            background-color: #e0e0e0;
         }
-
-        /* Formulário de Checkout */
-        .form-group {
-            margin-bottom: 15px;
+        .order-tab-content {
+            display: none;
         }
-
-        .form-group label {
+        .order-tab-content.active {
             display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-        }
-
-        .form-group input, .form-group textarea, .form-group select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1em;
-            box-sizing: border-box;
-        }
-
-        /* Acompanhamento de Pedidos */
-        .order-tracking-section label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-        }
-
-        .order-tracking-section input {
-            width: calc(100% - 22px);
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1em;
-            margin-bottom: 15px;
-            box-sizing: border-box;
-        }
-
-        .order-status {
-            margin-top: 10px;
-            font-weight: bold;
-            color: var(--secondary-color);
-        }
-
-        /* Responsividade */
-        @media (max-width: 768px) {
-            .content-wrapper {
-                grid-template-columns: 1fr;
-            }
-            header h1 {
-                font-size: 2.2em;
-            }
         }
     </style>
 </head>
 <body>
 
-    <div id="toast" class="toast"></div>
-
-    <header id="main-header">
-        <div class="logo-container">
-            <img id="logo-preview" src="https://firebasestorage.googleapis.com/v0/b/aquilesplacarpro.appspot.com/o/logo.jpeg?alt=media&token=81c96a79-d586-444a-953e-001c3600c0a9" alt="Logo da Marmitaria">
-            <h1 id="marmitaria-name">Denny Martins</h1>
-        </div>
-        <div>
-            <p id="marmitaria-slogan">Sua marmitaria de qualidade!</p>
-            <p class="header-info" id="current-datetime"></p>
-        </div>
-    </header>
-
-    <div class="container">
-        <div class="content-wrapper">
-            <main>
-                <div class="menu-section">
-                    <h2>Cardápio do Dia</h2>
-                    <div id="marmitas-list">
-                        <p id="loading-marmitas">Carregando cardápio...</p>
-                    </div>
-                </div>
-
-                <div class="menu-section">
-                    <h2>Adicionais</h2>
-                    <div id="adicionais-list">
-                        <p id="loading-adicionais">Carregando adicionais...</p>
-                    </div>
-                </div>
-            </main>
-
-            <aside>
-                <div class="cart-section">
-                    <h2>Seu Carrinho</h2>
-                    <div id="cart-list">
-                        <p id="empty-cart-message">Seu carrinho está vazio.</p>
-                    </div>
-                    <div id="cart-summary" style="display:none;">
-                        <div class="cart-summary">
-                            <span>Total:</span>
-                            <span id="cart-total">R$ 0,00</span>
-                        </div>
-                        <button class="btn-checkout" onclick="showCheckout()">Finalizar Pedido</button>
-                    </div>
-                </div>
-
-                <div class="checkout-section" id="checkout-form" style="display:none;">
-                    <h2>Informações para Entrega</h2>
-                    <form id="delivery-form">
-                        <div class="form-group">
-                            <label for="name">Nome Completo</label>
-                            <input type="text" id="name" name="name" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="address">Endereço de Entrega</label>
-                            <input type="text" id="address" name="address" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="phone">Telefone (DDD + Número)</label>
-                            <input type="tel" id="phone" name="phone" required placeholder="Ex: 18999998888">
-                        </div>
-                        <div class="form-group">
-                            <label for="payment">Forma de Pagamento</label>
-                            <select id="payment" name="payment" required>
-                                <option value="">Selecione...</option>
-                                <option value="Dinheiro">Dinheiro</option>
-                                <option value="Cartão na Entrega">Cartão na Entrega</option>
-                                <option value="PIX">PIX</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn-checkout">Enviar Pedido por WhatsApp</button>
-                    </form>
-                </div>
-
-                <div class="order-tracking-section">
-                    <h2>Acompanhamento de Pedidos</h2>
-                    <label for="orderId">Código do Pedido:</label>
-                    <input type="text" id="orderId" placeholder="Digite seu código">
-                    <button onclick="trackOrder()">Buscar Pedido</button>
-                    <div id="order-status" class="order-status"></div>
-                </div>
-            </aside>
+    <div id="login-container" class="login-container">
+        <div class="login-box">
+            <h1>Login - Painel de Controle</h1>
+            <form id="login-form">
+                <input type="email" id="login-email" placeholder="E-mail" required>
+                <input type="password" id="login-password" placeholder="Senha" required>
+                <button type="submit" class="btn btn-primary">Entrar</button>
+            </form>
+            <p id="login-error-message" style="color:var(--accent-red); margin-top:10px;"></p>
         </div>
     </div>
 
+    <div id="admin-panel" style="display: none;">
+        <header>
+            <div class="header-left">
+                <h1>Painel de Controle</h1>
+                <p>Gerencie seu negócio Denny Martins Marmitaria</p>
+            </div>
+            <div class="header-right">
+                <p class="header-info" id="current-datetime"></p>
+                <button class="btn btn-logout" onclick="logout()">Sair</button>
+            </div>
+        </header>
+
+        <div class="container">
+            <div class="admin-section">
+                <h2>Configurações Globais</h2>
+                <form id="settings-form">
+                    <div class="form-group">
+                        <label for="marmitaria-name-input">Nome da Marmitaria</label>
+                        <input type="text" id="marmitaria-name-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="marmitaria-slogan-input">Slogan da Marmitaria</label>
+                        <input type="text" id="marmitaria-slogan-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Logo Atual</label>
+                        <img id="logo-preview" src="" alt="Logo da Marmitaria" style="max-width: 100px; height: auto; border-radius: 50%; border: 2px solid var(--primary-color);">
+                        <p style="font-size: 0.8em; color: var(--light-text-color);">A logo padrão será exibida caso nenhuma seja definida nas configurações globais.</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="logo-position-select">Posição da Logo no Site</label>
+                        <select id="logo-position-select">
+                            <option value="left">Esquerda</option>
+                            <option value="center">Centro</option>
+                            <option value="right">Direita</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Cores para cada Dia da Semana</label>
+                        <div id="daily-colors-inputs">
+                            </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" id="btn-save-settings">Salvar Configurações</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="admin-section">
+                <h2>Gerenciar Cardápio</h2>
+                <form id="menu-form">
+                    <input type="hidden" id="menu-item-id">
+                    <div class="form-group">
+                        <label for="item-name">Nome do Item</label>
+                        <input type="text" id="item-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="item-description">Descrição (opcional)</label>
+                        <textarea id="item-description"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="item-price">Preço (R$)</label>
+                        <input type="number" id="item-price" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="item-type">Tipo</label>
+                        <select id="item-type" required>
+                            <option value="marmitas">Marmita</option>
+                            <option value="adicionais">Adicional</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="item-image">Imagem do Item (opcional)</label>
+                        <input type="file" id="item-image" accept="image/*">
+                        <img id="current-item-image" src="" alt="Imagem do Item" style="display:none; margin-top: 10px;">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-success" id="btn-save-menu-item">Salvar Item</button>
+                        <button type="button" class="btn btn-info" id="btn-clear-form">Limpar Formulário</button>
+                    </div>
+                </form>
+                
+                <div class="menu-items-list" id="menu-items-list">
+                    <p id="loading-menu-items">Carregando itens do cardápio...</p>
+                </div>
+            </div>
+
+            <div class="admin-section">
+                <h2>Gerenciar Pedidos</h2>
+                <div class="order-tabs">
+                    <button class="order-tab-button active" data-tab="new-orders">Novos Pedidos</button>
+                    <button class="order-tab-button" data-tab="accepted-orders">Pedidos Aceitos</button>
+                    <button class="order-tab-button" data-tab="completed-orders">Pedidos Encerrados</button>
+                </div>
+
+                <div id="new-orders-tab" class="order-tab-content active">
+                    <h3>Pedidos Pendentes de Confirmação</h3>
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Total</th>
+                                <th>Data/Hora</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="new-orders-table-body">
+                            <p id="loading-new-orders">Carregando novos pedidos...</p>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="accepted-orders-tab" class="order-tab-content">
+                    <h3>Pedidos Aceitos e em Andamento</h3>
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Data/Hora</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="accepted-orders-table-body">
+                            <p id="loading-accepted-orders">Carregando pedidos aceitos...</p>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="completed-orders-tab" class="order-tab-content">
+                    <h3>Pedidos Encerrados (Entregues/Recusados)</h3>
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Data/Hora</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="completed-orders-table-body">
+                            <p id="loading-completed-orders">Carregando pedidos encerrados...</p>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="orderDetailModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close-btn" onclick="closeModal()">&times;</button>
+            <h3 id="modalTitle">Detalhes do Pedido</h3>
+            <div id="modal-order-details-content" class="modal-order-details">
+                </div>
+            <div class="modal-actions">
+                <button class="btn btn-success" id="acceptOrderBtn" onclick="updateOrderStatusFromModal('Aceito')">Aceitar Pedido</button>
+                <button class="btn btn-danger" id="rejectOrderBtn" onclick="updateOrderStatusFromModal('Recusado')">Recusar Pedido</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirmationModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close-btn" onclick="closeModal()">&times;</button>
+            <h3>Confirmação</h3>
+            <p id="confirmationModalMessage"></p>
+            <div class="modal-actions">
+                <button class="btn btn-danger" id="confirmationModalConfirmBtn">Sim</button>
+                <button class="btn btn-info" id="confirmationModalCancelBtn">Não</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
     <script>
@@ -461,94 +630,483 @@
             appId: "1:922321609151:web:ba51f5b21b322cf0a4c10a"
         };
 
-        // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        const auth = firebase.auth();
         const storage = firebase.storage();
         const storageRef = storage.ref();
 
         // --- Variáveis de Estado ---
         let menuData = { marmitas: {}, adicionais: {} };
-        let cart = new Map();
+        let allOrders = {};
         let globalSettings = {};
+        let currentOrderIdInModal = null;
 
         // --- Elementos do DOM ---
-        const marmitasList = document.getElementById('marmitas-list');
-        const adicionaisList = document.getElementById('adicionais-list');
-        const cartList = document.getElementById('cart-list');
-        const emptyCartMessage = document.getElementById('empty-cart-message');
-        const cartSummary = document.getElementById('cart-summary');
-        const cartTotalSpan = document.getElementById('cart-total');
-        const checkoutFormSection = document.getElementById('checkout-form');
-        const deliveryForm = document.getElementById('delivery-form');
-        const orderIdInput = document.getElementById('orderId');
-        const orderStatusDiv = document.getElementById('order-status');
-        const toast = document.getElementById('toast');
-        const loadingMarmitas = document.getElementById('loading-marmitas');
-        const loadingAdicionais = document.getElementById('loading-adicionais');
+        const loginContainer = document.getElementById('login-container');
+        const adminPanel = document.getElementById('admin-panel');
+        const loginForm = document.getElementById('login-form');
+        const loginErrorMessage = document.getElementById('login-error-message');
 
-        const mainHeader = document.getElementById('main-header');
-        const logoPreview = document.getElementById('logo-preview');
-        const marmitariaName = document.getElementById('marmitaria-name');
-        const marmitariaSlogan = document.getElementById('marmitaria-slogan');
+        const menuForm = document.getElementById('menu-form');
+        const menuItemsList = document.getElementById('menu-items-list');
+        const btnClearForm = document.getElementById('btn-clear-form');
+        const itemImageInput = document.getElementById('item-image');
+        const currentItemImage = document.getElementById('current-item-image');
+
+        const settingsForm = document.getElementById('settings-form');
+        const marmitariaNameInput = document.getElementById('marmitaria-name-input');
+        const marmitariaSloganInput = document.getElementById('marmitaria-slogan-input');
+        const logoPositionSelect = document.getElementById('logo-position-select');
+        const dailyColorsInputsDiv = document.getElementById('daily-colors-inputs');
         const currentDateTime = document.getElementById('current-datetime');
+
+        const orderTabButtons = document.querySelectorAll('.order-tab-button');
+        const newOrdersTableBody = document.getElementById('new-orders-table-body');
+        const acceptedOrdersTableBody = document.getElementById('accepted-orders-table-body');
+        const completedOrdersTableBody = document.getElementById('completed-orders-table-body');
+        const loadingNewOrders = document.getElementById('loading-new-orders');
+        const loadingAcceptedOrders = document.getElementById('loading-accepted-orders');
+        const loadingCompletedOrders = document.getElementById('loading-completed-orders');
+        const orderDetailModal = document.getElementById('orderDetailModal');
+        const modalOrderDetailsContent = document.getElementById('modal-order-details-content');
+        const confirmationModal = document.getElementById('confirmationModal');
+        const confirmationModalMessage = document.getElementById('confirmationModalMessage');
+        const confirmationModalConfirmBtn = document.getElementById('confirmationModalConfirmBtn');
+        const confirmationModalCancelBtn = document.getElementById('confirmationModalCancelBtn');
+        const toast = document.getElementById('toast');
 
         const daysOfWeekNames = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
         const daysOfWeekKeys = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-        // --- Funções Auxiliares ---
+        // --- Funções Auxiliares e Modais ---
+
+        function showToast(message) {
+            toast.innerText = message;
+            toast.className = "toast show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        function showConfirmationModal(message) {
+            return new Promise((resolve) => {
+                confirmationModalMessage.innerText = message;
+                confirmationModal.style.display = 'flex';
+                const confirmHandler = () => {
+                    closeModal();
+                    confirmationModalConfirmBtn.removeEventListener('click', confirmHandler);
+                    confirmationModalCancelBtn.removeEventListener('click', cancelHandler);
+                    resolve(true);
+                };
+                const cancelHandler = () => {
+                    closeModal();
+                    confirmationModalConfirmBtn.removeEventListener('click', confirmHandler);
+                    confirmationModalCancelBtn.removeEventListener('click', cancelHandler);
+                    resolve(false);
+                };
+                confirmationModalConfirmBtn.addEventListener('click', confirmHandler);
+                confirmationModalCancelBtn.addEventListener('click', cancelHandler);
+            });
+        }
+
+        function closeModal() {
+            orderDetailModal.style.display = 'none';
+            confirmationModal.style.display = 'none';
+            currentOrderIdInModal = null;
+        }
 
         function updateDateTime() {
             const now = new Date();
             const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
-            const dayOfWeek = daysOfWeekNames
+            const dayOfWeek = daysOfWeekNames[now.getDay()];
+            const dayOfMonth = now.getDate();
+            const month = months[now.getMonth()];
+            const year = now.getFullYear();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            currentDateTime.innerText = `Hoje é ${dayOfWeek}, ${dayOfMonth} de ${month} de ${year} às ${hours}:${minutes}.`;
+        }
 
-        console.log("Erro ao salvar pedido no Firebase:", error);
-                showToast("Erro ao enviar o pedido. Tente novamente.");
+        // --- Lógica de Login/Logout ---
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                loginContainer.style.display = 'none';
+                adminPanel.style.display = 'block';
+                initializeApp();
+            } else {
+                loginContainer.style.display = 'flex';
+                adminPanel.style.display = 'none';
+            }
+        });
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = e.target['login-email'].value;
+            const password = e.target['login-password'].value;
+            auth.signInWithEmailAndPassword(email, password)
+                .then(() => {
+                    loginErrorMessage.innerText = '';
+                })
+                .catch(error => {
+                    loginErrorMessage.innerText = 'Erro de login: ' + error.message;
+                });
+        });
+
+        function logout() {
+            auth.signOut();
+        }
+
+        // --- Funções de Gerenciamento do Painel ---
+
+        function renderDailyColorsInputs() {
+            dailyColorsInputsDiv.innerHTML = '';
+            daysOfWeekKeys.forEach((dayKey, index) => {
+                const dayName = daysOfWeekNames[index];
+                const currentColor = globalSettings.dailyColors ? (globalSettings.dailyColors[dayKey] || '#e74c3c') : '#e74c3c';
+                const div = document.createElement('div');
+                div.className = 'color-input-group';
+                div.innerHTML = `
+                    <label>${dayName}:</label>
+                    <input type="color" id="color-${dayKey}" value="${currentColor}">
+                    <input type="text" id="hex-${dayKey}" value="${currentColor}" pattern="#[0-9a-fA-F]{6}" title="Formato Hex: #RRGGBB">
+                `;
+                dailyColorsInputsDiv.appendChild(div);
+                div.querySelector(`#color-${dayKey}`).addEventListener('input', (e) => {
+                    div.querySelector(`#hex-${dayKey}`).value = e.target.value;
+                });
+                div.querySelector(`#hex-${dayKey}`).addEventListener('input', (e) => {
+                    const hexValue = e.target.value;
+                    if (/^#[0-9a-fA-F]{6}$/.test(hexValue)) {
+                        div.querySelector(`#color-${dayKey}`).value = hexValue;
+                    }
+                });
+            });
+        }
+
+        function fillSettingsForm() {
+            if (globalSettings.name) marmitariaNameInput.value = globalSettings.name;
+            if (globalSettings.slogan) marmitariaSloganInput.value = globalSettings.slogan;
+            if (globalSettings.logoPosition) logoPositionSelect.value = globalSettings.logoPosition;
+            renderDailyColorsInputs();
+        }
+
+        async function handleSettingsFormSubmit(event) {
+            event.preventDefault();
+            const newSettings = {
+                name: marmitariaNameInput.value,
+                slogan: marmitariaSloganInput.value,
+                logoPosition: logoPositionSelect.value,
+                dailyColors: {}
+            };
+            daysOfWeekKeys.forEach(dayKey => {
+                const hexInput = document.getElementById(`hex-${dayKey}`);
+                if (hexInput && /^#[0-9a-fA-F]{6}$/.test(hexInput.value)) {
+                    newSettings.dailyColors[dayKey] = hexInput.value;
+                }
+            });
+            try {
+                await db.ref('settings').set(newSettings);
+                showToast("Configurações salvas com sucesso!");
+            } catch (error) {
+                console.error("Erro ao salvar configurações:", error);
+                showToast("Erro ao salvar configurações.");
             }
         }
 
-        async function trackOrder() {
-            const orderId = orderIdInput.value.trim();
-            orderStatusDiv.innerHTML = 'Buscando...';
-            if (orderId) {
-                try {
-                    const snapshot = await db.ref('orders/' + orderId).once('value');
-                    const order = snapshot.val();
-                    if (order) {
-                        orderStatusDiv.innerHTML = `Status do pedido #${order.id}: <span style="font-weight:bold;">${order.status}</span>`;
-                    } else {
-                        orderStatusDiv.innerHTML = 'Pedido não encontrado.';
-                    }
-                } catch (error) {
-                    console.error("Erro ao buscar pedido:", error);
-                    orderStatusDiv.innerHTML = 'Erro ao buscar pedido. Tente novamente.';
+        function renderMenuItems() {
+            menuItemsList.innerHTML = '';
+            let hasItems = false;
+            ['marmitas', 'adicionais'].forEach(itemType => {
+                const items = menuData[itemType];
+                if (items && Object.keys(items).length > 0) {
+                    Object.entries(items).forEach(([id, item]) => {
+                        const itemDiv = createMenuItemDiv(id, item, itemType);
+                        menuItemsList.appendChild(itemDiv);
+                        hasItems = true;
+                    });
                 }
+            });
+            if (!hasItems) {
+                menuItemsList.innerHTML = '<p>Nenhum item no cardápio.</p>';
+            }
+        }
+
+        function createMenuItemDiv(itemId, itemData, itemType) {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'menu-item-edit';
+            itemDiv.innerHTML = `
+                <span>${itemData.name} - R$${itemData.price ? itemData.price.toFixed(2).replace('.', ',') : '0,00'}</span>
+                <div class="menu-item-edit-actions">
+                    ${itemData.imageUrl ? `<img src="${itemData.imageUrl}" alt="${itemData.name}" class="current-item-image">` : ''}
+                    <button class="btn btn-info" onclick="editMenuItem('${itemId}', '${itemType}')">Editar</button>
+                    <button class="btn btn-danger" onclick="deleteMenuItem('${itemId}', '${itemType}')">Excluir</button>
+                </div>
+            `;
+            return itemDiv;
+        }
+
+        function clearMenuForm() {
+            document.getElementById('menu-item-id').value = '';
+            document.getElementById('item-name').value = '';
+            document.getElementById('item-description').value = '';
+            document.getElementById('item-price').value = '';
+            document.getElementById('item-type').value = 'marmitas';
+            document.getElementById('btn-save-menu-item').innerText = 'Salvar Item';
+            document.getElementById('item-image').value = '';
+            currentItemImage.style.display = 'none';
+            currentItemImage.src = '';
+        }
+
+        async function handleMenuFormSubmit(event) {
+            event.preventDefault();
+            const itemId = document.getElementById('menu-item-id').value || db.ref().child('menu').push().key;
+            const itemType = document.getElementById('item-type').value;
+            const itemData = {
+                id: itemId,
+                name: document.getElementById('item-name').value,
+                description: document.getElementById('item-description').value,
+                price: parseFloat(document.getElementById('item-price').value),
+                imageUrl: '' // Inicializa com valor vazio
+            };
+
+            const imageFile = itemImageInput.files[0];
+            const oldImageUrl = menuData[itemType] && menuData[itemType][itemId] ? menuData[itemType][itemId].imageUrl : null;
+
+            try {
+                if (imageFile) {
+                    const imageName = `${itemType}/${itemId}_${imageFile.name}`;
+                    const uploadTask = storageRef.child(imageName).put(imageFile);
+                    await uploadTask;
+                    itemData.imageUrl = await storageRef.child(imageName).getDownloadURL();
+                } else if (oldImageUrl) {
+                    itemData.imageUrl = oldImageUrl;
+                }
+
+                await db.ref(`menu/${itemType}/${itemId}`).set(itemData);
+                showToast(`Item "${itemData.name}" salvo com sucesso!`);
+                clearMenuForm();
+
+            } catch (error) {
+                console.error("Erro ao salvar item:", error);
+                showToast("Erro ao salvar item. Verifique o console.");
+            }
+        }
+
+        function editMenuItem(itemId, itemType) {
+            const item = menuData[itemType][itemId];
+            if (item) {
+                document.getElementById('menu-item-id').value = itemId;
+                document.getElementById('item-name').value = item.name;
+                document.getElementById('item-description').value = item.description;
+                document.getElementById('item-price').value = item.price;
+                document.getElementById('item-type').value = itemType;
+                document.getElementById('btn-save-menu-item').innerText = 'Atualizar Item';
+                
+                if (item.imageUrl) {
+                    currentItemImage.src = item.imageUrl;
+                    currentItemImage.style.display = 'block';
+                } else {
+                    currentItemImage.style.display = 'none';
+                }
+                showToast(`Editando item: "${item.name}"`);
+            }
+        }
+
+        async function deleteMenuItem(itemId, itemType) {
+            const item = menuData[itemType][itemId];
+            const isConfirmed = await showConfirmationModal(`Tem certeza que deseja excluir o item "${item.name}"?`);
+            if (isConfirmed) {
+                try {
+                    // Opcional: deletar a imagem do Storage
+                    if (item.imageUrl) {
+                        const imageRef = storage.refFromURL(item.imageUrl);
+                        await imageRef.delete().catch(error => console.error("Erro ao deletar imagem do Storage:", error));
+                    }
+                    await db.ref(`menu/${itemType}/${itemId}`).remove();
+                    showToast(`Item "${item.name}" excluído!`);
+                } catch (error) {
+                    console.error("Erro ao excluir item:", error);
+                    showToast("Erro ao excluir item.");
+                }
+            }
+        }
+
+        function renderOrders(orders) {
+            const newOrders = [];
+            const acceptedOrders = [];
+            const completedOrders = [];
+            
+            Object.values(orders).forEach(order => {
+                if (order.status === 'Pendente') {
+                    newOrders.push(order);
+                } else if (order.status === 'Aceito' || order.status === 'Em Preparo' || order.status === 'Saiu para Entrega') {
+                    acceptedOrders.push(order);
+                } else {
+                    completedOrders.push(order);
+                }
+            });
+
+            renderTable(newOrdersTableBody, newOrders, 'new-orders');
+            renderTable(acceptedOrdersTableBody, acceptedOrders, 'accepted-orders');
+            renderTable(completedOrdersTableBody, completedOrders, 'completed-orders');
+        }
+
+        function renderTable(tableBody, orders, type) {
+            tableBody.innerHTML = '';
+            if (orders.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="5">Nenhum pedido nesta categoria.</td></tr>`;
+                const loadingMessage = document.getElementById(`loading-${type}`);
+                if (loadingMessage) loadingMessage.style.display = 'none';
             } else {
-                orderStatusDiv.innerHTML = 'Por favor, digite um código de pedido.';
+                const loadingMessage = document.getElementById(`loading-${type}`);
+                if (loadingMessage) loadingMessage.style.display = 'none';
+                orders.sort((a, b) => b.timestamp - a.timestamp).forEach(order => {
+                    const row = tableBody.insertRow();
+                    const date = new Date(order.timestamp).toLocaleString('pt-BR');
+                    let actionsHtml = '';
+                    if (type === 'new-orders') {
+                        actionsHtml = `
+                            <button class="btn btn-info" onclick="viewOrderDetails('${order.id}')">Detalhes</button>
+                        `;
+                    } else if (type === 'accepted-orders') {
+                        actionsHtml = `
+                            <button class="btn btn-info" onclick="viewOrderDetails('${order.id}')">Detalhes</button>
+                            <select class="status-select" onchange="updateOrderStatus('${order.id}', this.value)">
+                                <option value="Aceito" ${order.status === 'Aceito' ? 'selected' : ''}>Aceito</option>
+                                <option value="Em Preparo" ${order.status === 'Em Preparo' ? 'selected' : ''}>Em Preparo</option>
+                                <option value="Saiu para Entrega" ${order.status === 'Saiu para Entrega' ? 'selected' : ''}>Saiu para Entrega</option>
+                                <option value="Entregue" ${order.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
+                            </select>
+                        `;
+                    } else if (type === 'completed-orders') {
+                        actionsHtml = `
+                            <button class="btn btn-info" onclick="viewOrderDetails('${order.id}')">Detalhes</button>
+                            <button class="btn btn-danger" onclick="deleteOrder('${order.id}')">Excluir</button>
+                        `;
+                    }
+                    row.innerHTML = `
+                        <td>${order.id.substring(0, 6)}...</td>
+                        <td>${order.clientName}</td>
+                        <td>R$ ${order.total ? order.total.toFixed(2).replace('.', ',') : '0,00'}</td>
+                        <td>${date}</td>
+                        <td class="order-actions">${actionsHtml}</td>
+                    `;
+                });
+            }
+        }
+
+        function viewOrderDetails(orderId) {
+            const order = allOrders[orderId];
+            if (order) {
+                let itemsHtml = (order.items || []).map(item => `<li>${item.quantity}x ${item.name} - R$ ${item.price.toFixed(2).replace('.', ',')}</li>`).join('');
+                modalOrderDetailsContent.innerHTML = `
+                    <p><strong>ID do Pedido:</strong> ${order.id}</p>
+                    <p><strong>Status:</strong> ${order.status}</p>
+                    <p><strong>Cliente:</strong> ${order.clientName}</p>
+                    <p><strong>Telefone:</strong> ${order.clientPhone}</p>
+                    <p><strong>Endereço:</strong> ${order.clientAddress}</p>
+                    <p><strong>Pagamento:</strong> ${order.paymentMethod}</p>
+                    <p><strong>Total:</strong> R$ ${order.total.toFixed(2).replace('.', ',')}</p>
+                    <p><strong>Itens:</strong></p>
+                    <ul>${itemsHtml}</ul>
+                `;
+                currentOrderIdInModal = orderId;
+                const actions = orderDetailModal.querySelector('.modal-actions');
+                if (order.status !== 'Pendente') {
+                    actions.style.display = 'none';
+                } else {
+                    actions.style.display = 'flex';
+                }
+                orderDetailModal.style.display = 'flex';
+            }
+        }
+
+        async function updateOrderStatus(orderId, newStatus) {
+            try {
+                await db.ref(`orders/${orderId}/status`).set(newStatus);
+                showToast(`Status do pedido #${orderId.substring(0, 6)}... atualizado para "${newStatus}".`);
+            } catch (error) {
+                console.error("Erro ao atualizar status:", error);
+                showToast("Erro ao atualizar status.");
+            }
+        }
+
+        function updateOrderStatusFromModal(newStatus) {
+            if (currentOrderIdInModal) {
+                updateOrderStatus(currentOrderIdInModal, newStatus);
+                closeModal();
+            }
+        }
+
+        async function deleteOrder(orderId) {
+            const isConfirmed = await showConfirmationModal(`Tem certeza que deseja excluir o pedido #${orderId.substring(0, 6)}?`);
+            if (isConfirmed) {
+                try {
+                    await db.ref(`orders/${orderId}`).remove();
+                    showToast(`Pedido #${orderId.substring(0, 6)}... excluído!`);
+                } catch (error) {
+                    console.error("Erro ao excluir pedido:", error);
+                    showToast("Erro ao excluir pedido.");
+                }
             }
         }
 
         // --- Event Listeners e Inicialização ---
 
-        deliveryForm.addEventListener('submit', handleDeliveryFormSubmit);
-        document.addEventListener('DOMContentLoaded', () => {
+        function initializeApp() {
             updateDateTime();
             setInterval(updateDateTime, 60000);
 
-            // Carrega as configurações globais e o menu do Firebase
+            // Carrega configurações globais e o menu do Firebase
             db.ref('settings').on('value', (snapshot) => {
                 globalSettings = snapshot.val() || {};
-                applyGlobalSettings();
+                fillSettingsForm();
             });
 
             db.ref('menu').on('value', (snapshot) => {
                 menuData = snapshot.val() || { marmitas: {}, adicionais: {} };
-                loadingMarmitas.style.display = 'none';
-                loadingAdicionais.style.display = 'none';
-                renderMenu();
+                document.getElementById('loading-menu-items').style.display = 'none';
+                renderMenuItems();
             });
-        });
+
+            // Carrega todos os pedidos e renderiza nas abas
+            db.ref('orders').on('value', (snapshot) => {
+                allOrders = snapshot.val() || {};
+                renderOrders(allOrders);
+            });
+
+            // Event listeners para as abas de pedidos
+            orderTabButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const tabId = e.target.dataset.tab;
+                    document.querySelectorAll('.order-tab-button').forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                    document.querySelectorAll('.order-tab-content').forEach(content => {
+                        content.style.display = 'none';
+                        if (content.id === `${tabId}-tab`) {
+                            content.style.display = 'block';
+                        }
+                    });
+                });
+            });
+
+            settingsForm.addEventListener('submit', handleSettingsFormSubmit);
+            menuForm.addEventListener('submit', handleMenuFormSubmit);
+            btnClearForm.addEventListener('click', clearMenuForm);
+            itemImageInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        currentItemImage.src = e.target.result;
+                        currentItemImage.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    currentItemImage.style.display = 'none';
+                }
+            });
+        }
     </script>
 </body>
-    </html>
+                            </html>
