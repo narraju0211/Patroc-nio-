@@ -571,10 +571,20 @@
 
         window.onload = function() {
             // Check if firebase is defined before initializing
-            if (typeof firebase === 'undefined' || typeof firebase.database === 'undefined' || typeof firebase.storage === 'undefined') {
-                console.error("Firebase SDK (App, Database ou Storage) não carregado. Verifique a conexão ou os caminhos dos scripts.");
+            if (typeof firebase === 'undefined') {
+                console.error("Firebase SDK (App) não carregado. Verifique a conexão ou os caminhos dos scripts.");
                 showToast("Erro: Firebase SDK não carregado. A funcionalidade pode estar limitada.");
                 return; // Stop execution if Firebase is not available
+            }
+            if (typeof firebase.database === 'undefined') {
+                console.error("Firebase Database SDK não carregado. Verifique a conexão ou os caminhos dos scripts.");
+                showToast("Erro: Firebase Database SDK não carregado. A funcionalidade pode estar limitada.");
+                return;
+            }
+            if (typeof firebase.storage === 'undefined') {
+                console.error("Firebase Storage SDK não carregado. Verifique a conexão ou os caminhos dos scripts.");
+                showToast("Erro: Firebase Storage SDK não carregado. A funcionalidade pode estar limitada.");
+                return;
             }
 
             // Initialize Firebase
