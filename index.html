@@ -74,48 +74,11 @@
             font-weight: 700;
         }
 
-        header .logo-upload-area {
-            cursor: pointer;
-            position: relative;
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: var(--background-color);
+        header img {
+            max-width: 100px;
+            height: auto;
+            border-radius: 50%; /* Adicionado para manter o estilo circular */
             border: 2px solid var(--primary-color);
-            margin: 0 auto 10px;
-        }
-
-        header .logo-upload-area img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
-
-        header .logo-upload-area span {
-            font-size: 0.8em;
-            text-align: center;
-            padding: 5px;
-            color: var(--light-text-color);
-            transition: opacity 0.3s ease;
-        }
-
-        header .logo-upload-area:hover span {
-            opacity: 0;
-        }
-
-        header .logo-upload-area input[type="file"] {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
         }
 
         header p {
@@ -387,12 +350,6 @@
             border-top: 1px solid #eee;
         }
 
-        .update-status-form label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 400;
-        }
-
         .update-status-form select {
             width: 100%;
             padding: 10px;
@@ -435,11 +392,7 @@
 
     <header>
         <div class="logo-container">
-            <div class="logo-upload-area">
-                <span id="logo-text">Clique aqui para carregar sua logo</span>
-                <img id="logo-preview" src="" alt="Logo da Marmitaria" style="display:none;">
-                <input type="file" id="logo-input" accept="image/*">
-            </div>
+            <img id="logo-preview" src="https://via.placeholder.com/100/e74c3c/ffffff?text=Logo" alt="Logo da Marmitaria">
             <h1>Denny Martins</h1>
         </div>
         <p>Sua marmitaria de qualidade!</p>
@@ -451,12 +404,14 @@
                 <div class="menu-section">
                     <h2>Cardápio do Dia</h2>
                     <div id="marmitas-list">
+                        <p id="loading-marmitas">Carregando cardápio...</p>
                     </div>
                 </div>
 
                 <div class="menu-section">
                     <h2>Adicionais</h2>
                     <div id="adicionais-list">
+                        <p id="loading-adicionais">Carregando adicionais...</p>
                     </div>
                 </div>
             </main>
@@ -511,7 +466,7 @@
                     <button onclick="trackOrder()">Buscar Pedido</button>
                     <div id="order-status" class="order-status"></div>
 
-                    <div class="update-status-form">
+                    <div id="update-status-form" style="display:none;">
                         <h3>Atualizar Status (Simulação)</h3>
                         <label for="updateOrderId">Código do Pedido:</label>
                         <input type="text" id="updateOrderId" placeholder="Digite o código">
@@ -532,26 +487,9 @@
     </div>
 
     <script>
-        // --- SIMULAÇÃO DE DADOS DO CARDÁPIO (Substituir por Firebase) ---
-        const menuData = {
-            marmitas: [
-                { id: 1, name: 'Frango Grelhado com Legumes', description: 'Peito de frango suculento, arroz integral, feijão preto e legumes cozidos no vapor.', price: 25.00, image: 'https://via.placeholder.com/100/e74c3c/ffffff?text=Marmita+1' },
-                { id: 2, name: 'Bife Acebolado com Purê', description: 'Bife macio coberto com cebola, acompanhado de purê de batata cremoso e salada de folhas.', price: 28.00, image: 'https://via.placeholder.com/100/3498db/ffffff?text=Marmita+2' },
-                { id: 3, name: 'Marmita Vegetariana', description: 'Mix de vegetais salteados, grão de bico, arroz integral e lentilha.', price: 23.00, image: 'https://via.placeholder.com/100/2ecc71/ffffff?text=Marmita+3' },
-            ],
-            adicionais: [
-                { id: 4, name: 'Coca-Cola Lata', price: 6.00, image: 'https://via.placeholder.com/100/f39c12/ffffff?text=Coke' },
-                { id: 5, name: 'Pudim de Leite', price: 10.00, image: 'https://via.placeholder.com/100/9b59b6/ffffff?text=Pudim' },
-            ]
-        };
-
-        // --- Variáveis de Estado (SIMULAÇÃO) ---
-        let cart = new Map(); // Usamos um Map para rastrear itens e suas quantidades
-        // Simulação de dados de pedidos (Substituir por Firebase)
-        const orders = {
-            'DM123': { status: 'preparando', items: [{ name: 'Frango Grelhado com Legumes', price: 25.00 }] },
-            'DM456': { status: 'saiu_para_entrega', items: [{ name: 'Bife Acebolado com Purê', price: 28.00 }] }
-        };
+        // --- Variáveis de Estado (Simuladas - serão substituídas pelo Firebase) ---
+        let menuData = { marmitas: [], adicionais: [] };
+        let orders = {};
 
         const marmitasList = document.getElementById('marmitas-list');
         const adicionaisList = document.getElementById('adicionais-list');
@@ -563,15 +501,13 @@
         const deliveryForm = document.getElementById('delivery-form');
         const orderIdInput = document.getElementById('orderId');
         const orderStatusDiv = document.getElementById('order-status');
-        const updateOrderIdInput = document.getElementById('updateOrderId');
-        const newStatusSelect = document.getElementById('newStatus');
-        const updateStatusMessageDiv = document.getElementById('update-status-message');
         const toast = document.getElementById('toast');
-        const logoInput = document.getElementById('logo-input');
-        const logoPreview = document.getElementById('logo-preview');
-        const logoText = document.getElementById('logo-text');
 
-        // --- Funções de Renderização ---
+        let cart = new Map();
+
+        // --- Funções de Renderização e Lógica do Carrinho (As mesmas do código anterior) ---
+        // As funções addToCart, removeFromCart, showCheckout, showToast, renderCart e findMenuItem
+        // são as mesmas. Elas estão prontas para usar os dados que virão do Firebase.
 
         function findMenuItem(itemId) {
             let item = menuData.marmitas.find(m => m.id === itemId);
@@ -582,6 +518,9 @@
         }
 
         function renderMenu() {
+            marmitasList.innerHTML = '';
+            adicionaisList.innerHTML = '';
+
             function createMenuItemHTML(item, isMarmita = true) {
                 const descriptionHTML = isMarmita ? `<p>${item.description}</p>` : '';
                 return `
@@ -599,13 +538,21 @@
                 `;
             }
             
-            menuData.marmitas.forEach(item => {
-                marmitasList.innerHTML += createMenuItemHTML(item);
-            });
+            if (menuData.marmitas.length > 0) {
+                menuData.marmitas.forEach(item => {
+                    marmitasList.innerHTML += createMenuItemHTML(item);
+                });
+            } else {
+                marmitasList.innerHTML = '<p>Nenhum item disponível no cardápio de marmitas hoje.</p>';
+            }
 
-            menuData.adicionais.forEach(item => {
-                adicionaisList.innerHTML += createMenuItemHTML(item, false);
-            });
+            if (menuData.adicionais.length > 0) {
+                menuData.adicionais.forEach(item => {
+                    adicionaisList.innerHTML += createMenuItemHTML(item, false);
+                });
+            } else {
+                adicionaisList.innerHTML = '<p>Nenhum adicional disponível hoje.</p>';
+            }
         }
 
         function renderCart() {
@@ -637,8 +584,6 @@
 
             cartTotalSpan.innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
         }
-
-        // --- Funções de Lógica do Carrinho ---
 
         function addToCart(itemId) {
             const item = findMenuItem(itemId);
@@ -680,10 +625,9 @@
             
             const clientName = formData.get('name');
             const clientAddress = formData.get('address');
-            const clientPhone = formData.get('phone').replace(/\D/g, ''); // Remove todos os caracteres não numéricos
+            const clientPhone = formData.get('phone').replace(/\D/g, '');
             const paymentMethod = formData.get('payment');
 
-            // Formata os itens do carrinho para a mensagem
             let cartItemsText = '--- Pedido ---\n';
             let total = 0;
             cart.forEach((quantity, itemId) => {
@@ -695,7 +639,6 @@
                 }
             });
 
-            // Adiciona o total e informações do cliente
             const totalText = `\n*Total do Pedido:* R$ ${total.toFixed(2).replace('.', ',')}`;
             const clientInfoText = `\n--- Dados para Entrega ---\n*Nome:* ${clientName}\n*Endereço:* ${clientAddress}\n*Forma de Pagamento:* ${paymentMethod}`;
 
@@ -706,17 +649,36 @@
                 clientInfoText
             );
 
-            // WhatsApp agora com o número definido
+            // WhatsApp com o número definido
             const whatsappNumber = '18981561535'; 
             const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${fullMessage}`;
 
-            // Abre o link no WhatsApp
             window.open(whatsappUrl, '_blank');
+            
+            // [FIREBASE] AQUI VOCÊ ENVIARIA OS DADOS DO PEDIDO PARA O FIREBASE
+            // Exemplo: firebase.database().ref('orders').push({
+            //   clientName, clientAddress, clientPhone, paymentMethod,
+            //   items: Array.from(cart.entries()), // Converte o Map para um array
+            //   total,
+            //   status: 'Pendente',
+            //   timestamp: Date.now()
+            // });
         }
         
-        // --- Lógica de Simulação de Rastreamento (Mantido) ---
         function trackOrder() {
             const orderId = orderIdInput.value.toUpperCase();
+            
+            // [FIREBASE] AQUI VOCÊ BUSCARIA O STATUS DO PEDIDO NO BANCO DE DADOS
+            // Exemplo: firebase.database().ref('orders/' + orderId).on('value', (snapshot) => {
+            //   const order = snapshot.val();
+            //   if (order) {
+            //     orderStatusDiv.innerText = `Status do Pedido ${orderId}: ${order.status}`;
+            //   } else {
+            //     orderStatusDiv.innerText = 'Pedido não encontrado.';
+            //   }
+            // });
+
+            // Simulação (remova após integrar com Firebase)
             if (orders[orderId]) {
                 orderStatusDiv.innerText = `Status do Pedido ${orderId}: ${orders[orderId].status}`;
             } else {
@@ -724,37 +686,20 @@
             }
         }
 
-        function updateOrderStatus() {
-            const orderId = updateOrderIdInput.value.toUpperCase();
-            const newStatus = newStatusSelect.value;
-            if (orders[orderId]) {
-                orders[orderId].status = newStatus;
-                updateStatusMessageDiv.innerText = `Status do Pedido ${orderId} atualizado para ${newStatus}.`;
-            } else {
-                updateStatusMessageDiv.innerText = 'Pedido não encontrado.';
-            }
-        }
-        
-        // --- Função para carregar a logo ---
-        logoInput.addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    logoPreview.src = e.target.result;
-                    logoPreview.style.display = 'block';
-                    logoText.style.display = 'none';
-                }
-                reader.readAsDataURL(file);
-            }
-        });
-
         // --- Inicialização ---
-        window.onload = function() {
+        document.addEventListener('DOMContentLoaded', () => {
+            deliveryForm.addEventListener('submit', handleDeliveryFormSubmit);
+
+            // [FIREBASE] AQUI VOCÊ CARREGARIA OS DADOS DO CARDÁPIO DO FIREBASE
+            // Exemplo: firebase.database().ref('menu').on('value', (snapshot) => {
+            //   menuData = snapshot.val();
+            //   renderMenu();
+            // });
+            
+            // Renderiza com os dados iniciais vazios para exibir o "Carregando..."
             renderMenu();
             renderCart();
-            deliveryForm.addEventListener('submit', handleDeliveryFormSubmit);
-        };
+        });
     </script>
 </body>
-                            </html>
+    </html>
