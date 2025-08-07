@@ -381,7 +381,7 @@
                 <div class="form-group">
                     <label for="settings-logo-upload">Upload da Logo</label>
                     <input type="file" id="settings-logo-upload" accept="image/*">
-                    <img id="settings-logo-preview" src="" alt="Pré-visualização da logo atual" style="max-width: 100px; height: auto; margin-top: 10px; border-radius: 50%; border: 2px solid var(--primary-color); display:none;">
+                    <img id="settings-logo-preview" src="" alt="Pré-visualização da logo atual" style="max-width: 100px; height: auto; margin-top: 10px; border-radius: 50%; border: 2px solid var(--primary-color); display:none;" onerror="this.style.display='none'; console.warn('Falha ao carregar logo. Usando fallback.');">
                     <button type="button" class="btn btn-info" id="btn-upload-logo" style="margin-top: 10px;">Upload Logo</button>
                 </div>
                 <div class="form-group">
@@ -445,6 +445,9 @@
                 <button class="order-tab-button active" data-tab="new-orders">Novos Pedidos</button>
                 <button class="order-tab-button" data-tab="accepted-orders">Pedidos Aceitos</button>
                 <button class="order-tab-button" data-tab="completed-orders">Pedidos Encerrados</button>
+            </div>
+            <div style="margin-top: 15px; text-align: right;">
+                <button type="button" class="btn btn-danger" onclick="deleteAllOrders()">Excluir Todos os Pedidos</button>
             </div>
 
             <div id="new-orders-tab" class="order-tab-content active">
@@ -554,608 +557,653 @@
             appId: "1:922321609151:web:ba51f5b21b322cf0a4c10a"
         };
 
-        // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.database(); // Get a reference to the database service
-        const storage = firebase.storage(); // Firebase Storage SDK inicializado
+        // Global error handler for better debugging
+        window.onerror = function(message, source, lineno, colno, error) {
+            console.error("Erro de Script Global Capturado (Painel Admin):");
+            console.error("Mensagem:", message);
+            console.error("Origem:", source);
+            console.error("Linha:", lineno);
+            console.error("Coluna:", colno);
+            console.error("Objeto de Erro:", error);
+            showToast("Um erro inesperado ocorreu. Verifique o console para detalhes.");
+            return true; // Prevents default browser error handling
+        };
 
-        // --- Variáveis de Estado ---
-        let menuData = { marmitas: {}, adicionais: {} }; // Usará objetos para mapear por ID do Firebase
-        let allOrders = {}; // Armazena todos os pedidos brutos do Firebase
-        let globalSettings = {}; // Para armazenar as configurações da marmitaria
-        let currentOrderIdInModal = null; // Para saber qual pedido está na modal de detalhes
+        window.onload = function() {
+            // Check if firebase is defined before initializing
+            if (typeof firebase === 'undefined' || typeof firebase.database === 'undefined' || typeof firebase.storage === 'undefined') {
+                console.error("Firebase SDK (App, Database ou Storage) não carregado. Verifique a conexão ou os caminhos dos scripts.");
+                showToast("Erro: Firebase SDK não carregado. A funcionalidade pode estar limitada.");
+                return; // Stop execution if Firebase is not available
+            }
 
-        // --- Elementos do DOM ---
-        const menuForm = document.getElementById('menu-form');
-        const menuItemsList = document.getElementById('menu-items-list');
-        const btnClearForm = document.getElementById('btn-clear-form');
+            // Initialize Firebase
+            const app = firebase.initializeApp(firebaseConfig);
+            const db = firebase.database(); // Get a reference to the database service
+            const storage = firebase.storage(); // Firebase Storage SDK inicializado
 
-        // Settings form elements
-        const settingsForm = document.getElementById('settings-form');
-        const marmitariaNameInput = document.getElementById('marmitaria-name-input');
-        const marmitariaSloganInput = document.getElementById('marmitaria-slogan-input');
-        const settingsLogoUpload = document.getElementById('settings-logo-upload'); // Campo de upload da logo
-        const settingsLogoPreview = document.getElementById('settings-logo-preview'); // Pré-visualização da logo
-        const btnUploadLogo = document.getElementById('btn-upload-logo'); // Botão de upload da logo
-        const logoPositionSelect = document.getElementById('logo-position-select');
-        const dailyColorsInputsDiv = document.getElementById('daily-colors-inputs');
-        const currentDateTime = document.getElementById('current-datetime');
+            // --- Variáveis de Estado ---
+            let menuData = { marmitas: {}, adicionais: {} }; // Usará objetos para mapear por ID do Firebase
+            let allOrders = {}; // Armazena todos os pedidos brutos do Firebase
+            let globalSettings = {}; // Para armazenar as configurações da marmitaria
+            let currentOrderIdInModal = null; // Para saber qual pedido está na modal de detalhes
 
-        // Order tab elements
-        const orderTabButtons = document.querySelectorAll('.order-tab-button');
-        const newOrdersTab = document.getElementById('new-orders-tab');
-        const acceptedOrdersTab = document.getElementById('accepted-orders-tab');
-        const completedOrdersTab = document.getElementById('completed-orders-tab');
+            // --- Elementos do DOM ---
+            const menuForm = document.getElementById('menu-form');
+            const menuItemsList = document.getElementById('menu-items-list');
+            const btnClearForm = document.getElementById('btn-clear-form');
 
-        // Order table bodies
-        const newOrdersTableBody = document.getElementById('new-orders-table-body');
-        const acceptedOrdersTableBody = document.getElementById('accepted-orders-table-body');
-        const completedOrdersTableBody = document.getElementById('completed-orders-table-body');
+            // Settings form elements
+            const settingsForm = document.getElementById('settings-form');
+            const marmitariaNameInput = document.getElementById('marmitaria-name-input');
+            const marmitariaSloganInput = document.getElementById('marmitaria-slogan-input');
+            const settingsLogoUpload = document.getElementById('settings-logo-upload'); // Campo de upload da logo
+            const settingsLogoPreview = document.getElementById('settings-logo-preview'); // Pré-visualização da logo
+            const btnUploadLogo = document.getElementById('btn-upload-logo'); // Botão de upload da logo
+            const logoPositionSelect = document.getElementById('logo-position-select');
+            const dailyColorsInputsDiv = document.getElementById('daily-colors-inputs');
+            const currentDateTime = document.getElementById('current-datetime');
 
-        // Loading messages for orders
-        const loadingNewOrders = document.getElementById('loading-new-orders');
-        const loadingAcceptedOrders = document.getElementById('loading-accepted-orders');
-        const loadingCompletedOrders = document.getElementById('loading-completed-orders');
+            // Order tab elements
+            const orderTabButtons = document.querySelectorAll('.order-tab-button');
+            const newOrdersTab = document.getElementById('new-orders-tab');
+            const acceptedOrdersTab = document.getElementById('accepted-orders-tab');
+            const completedOrdersTab = document.getElementById('completed-orders-tab');
 
-        // Order Detail Modal elements
-        const orderDetailModal = document.getElementById('orderDetailModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalOrderDetailsContent = document.getElementById('modal-order-details-content');
-        const acceptOrderBtn = document.getElementById('acceptOrderBtn');
-        const rejectOrderBtn = document.getElementById('rejectOrderBtn');
+            // Order table bodies
+            const newOrdersTableBody = document.getElementById('new-orders-table-body');
+            const acceptedOrdersTableBody = document.getElementById('accepted-orders-table-body');
+            const completedOrdersTableBody = document.getElementById('completed-orders-table-body');
 
-        // Generic Confirmation Modal elements
-        const confirmationModal = document.getElementById('confirmationModal');
-        const confirmationModalMessage = document.getElementById('confirmationModalMessage');
-        const confirmationModalConfirmBtn = document.getElementById('confirmationModalConfirmBtn');
-        const confirmationModalCancelBtn = document.getElementById('confirmationModalCancelBtn');
+            // Loading messages for orders
+            const loadingNewOrders = document.getElementById('loading-new-orders');
+            const loadingAcceptedOrders = document.getElementById('loading-accepted-orders');
+            const loadingCompletedOrders = document.getElementById('loading-completed-orders');
 
-        // Toast element
-        const toast = document.getElementById('toast');
+            // Order Detail Modal elements
+            const orderDetailModal = document.getElementById('orderDetailModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalOrderDetailsContent = document.getElementById('modal-order-details-content');
+            const acceptOrderBtn = document.getElementById('acceptOrderBtn');
+            const rejectOrderBtn = document.getElementById('rejectOrderBtn');
 
-        // Days of the week for daily colors
-        const daysOfWeekNames = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
-        const daysOfWeekKeys = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            // Generic Confirmation Modal elements
+            const confirmationModal = document.getElementById('confirmationModal');
+            const confirmationModalMessage = document.getElementById('confirmationModalMessage');
+            const confirmationModalConfirmBtn = document.getElementById('confirmationModalConfirmBtn');
+            const confirmationModalCancelBtn = document.getElementById('confirmationModalCancelBtn');
 
-        // --- Funções Auxiliares ---
+            // Toast element
+            const toast = document.getElementById('toast');
 
-        /**
-         * Exibe uma mensagem de toast na parte inferior da tela.
-         * @param {string} message - A mensagem a ser exibida.
-         */
-        function showToast(message) {
-            toast.innerText = message;
-            toast.className = "toast show";
-            setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
-        }
+            // Days of the week for daily colors
+            const daysOfWeekNames = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+            const daysOfWeekKeys = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-        /**
-         * Exibe uma modal de confirmação personalizada.
-         * @param {string} message - A mensagem a ser exibida na modal.
-         * @returns {Promise<boolean>} Uma promessa que resolve para true se confirmado, false se cancelado.
-         */
-        function showConfirmationModal(message) {
-            return new Promise((resolve) => {
-                confirmationModalMessage.innerText = message;
-                confirmationModal.style.display = 'flex'; // Use flex para centralizar
+            // --- Funções Auxiliares ---
 
-                const confirmHandler = () => {
-                    closeModal(); // Fecha a modal genérica
-                    confirmationModalConfirmBtn.removeEventListener('click', confirmHandler);
-                    confirmationModalCancelBtn.removeEventListener('click', cancelHandler);
-                    resolve(true);
-                };
+            /**
+             * Exibe uma mensagem de toast na parte inferior da tela.
+             * @param {string} message - A mensagem a ser exibida.
+             */
+            function showToast(message) {
+                toast.innerText = message;
+                toast.className = "toast show";
+                setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
+            }
 
-                const cancelHandler = () => {
-                    closeModal(); // Fecha a modal genérica
-                    confirmationModalConfirmBtn.removeEventListener('click', confirmHandler);
-                    confirmationModalCancelBtn.removeEventListener('click', cancelHandler);
-                    resolve(false);
-                };
+            /**
+             * Exibe uma modal de confirmação personalizada.
+             * @param {string} message - A mensagem a ser exibida na modal.
+             * @returns {Promise<boolean>} Uma promessa que resolve para true se confirmado, false se cancelado.
+             */
+            function showConfirmationModal(message) {
+                return new Promise((resolve) => {
+                    confirmationModalMessage.innerText = message;
+                    confirmationModal.style.display = 'flex'; // Use flex para centralizar
 
-                confirmationModalConfirmBtn.addEventListener('click', confirmHandler);
-                confirmationModalCancelBtn.addEventListener('click', cancelHandler);
-            });
-        }
+                    const confirmHandler = () => {
+                        closeModal(); // Fecha a modal genérica
+                        confirmationModalConfirmBtn.removeEventListener('click', confirmHandler);
+                        confirmationModalCancelBtn.removeEventListener('click', cancelHandler);
+                        resolve(true);
+                    };
 
-        /**
-         * Fecha qualquer modal aberta.
-         */
-        function closeModal() {
-            orderDetailModal.style.display = 'none';
-            confirmationModal.style.display = 'none';
-            currentOrderIdInModal = null; // Limpa o ID do pedido na modal
-        }
+                    const cancelHandler = () => {
+                        closeModal(); // Fecha a modal genérica
+                        confirmationModalConfirmBtn.removeEventListener('click', confirmHandler);
+                        confirmationModalCancelBtn.removeEventListener('click', cancelHandler);
+                        resolve(false);
+                    };
 
-        /**
-         * Atualiza a data e hora no cabeçalho.
-         */
-        function updateDateTime() {
-            const now = new Date();
-            const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
-
-            const dayOfWeek = daysOfWeekNames[now.getDay()];
-            const dayOfMonth = now.getDate();
-            const month = months[now.getMonth()];
-            const year = now.getFullYear();
-            const hours = now.getHours().toString().padStart(2, '0');
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-
-            currentDateTime.innerText = `Bom dia! Hoje é ${dayOfWeek}, ${dayOfMonth} de ${month} de ${year} às ${hours}:${minutes}.`;
-        }
-
-        // --- Funções de Renderização e Lógica do Admin ---
-
-        /**
-         * Renderiza os inputs de cor para cada dia da semana.
-         * Preenche com os valores existentes nas configurações globais.
-         */
-        function renderDailyColorsInputs() {
-            dailyColorsInputsDiv.innerHTML = '';
-            daysOfWeekKeys.forEach((dayKey, index) => {
-                const dayName = daysOfWeekNames[index];
-                const currentColor = globalSettings.dailyColors ? (globalSettings.dailyColors[dayKey] || '#e74c3c') : '#e74c3c';
-
-                const div = document.createElement('div');
-                div.className = 'color-input-group';
-                div.innerHTML = `
-                    <label>${dayName}:</label>
-                    <input type="color" id="color-${dayKey}" value="${currentColor}">
-                    <input type="text" id="hex-${dayKey}" value="${currentColor}" pattern="#[0-9a-fA-F]{6}" title="Formato Hex: #RRGGBB">
-                `;
-                dailyColorsInputsDiv.appendChild(div);
-
-                // Sincroniza color picker com text input
-                div.querySelector(`#color-${dayKey}`).addEventListener('input', (e) => {
-                    div.querySelector(`#hex-${dayKey}`).value = e.target.value;
+                    confirmationModalConfirmBtn.addEventListener('click', confirmHandler);
+                    confirmationModalCancelBtn.addEventListener('click', cancelHandler);
                 });
-                div.querySelector(`#hex-${dayKey}`).addEventListener('input', (e) => {
-                    const hexValue = e.target.value;
-                    if (/^#[0-9a-fA-F]{6}$/.test(hexValue)) {
-                        div.querySelector(`#color-${dayKey}`).value = hexValue;
+            }
+
+            /**
+             * Fecha qualquer modal aberta.
+             */
+            function closeModal() {
+                orderDetailModal.style.display = 'none';
+                confirmationModal.style.display = 'none';
+                currentOrderIdInModal = null; // Limpa o ID do pedido na modal
+            }
+
+            /**
+             * Atualiza a data e hora no cabeçalho.
+             */
+            function updateDateTime() {
+                const now = new Date();
+                const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+
+                const dayOfWeek = daysOfWeekNames[now.getDay()];
+                const dayOfMonth = now.getDate();
+                const month = months[now.getMonth()];
+                const year = now.getFullYear();
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+
+                currentDateTime.innerText = `Bom dia! Hoje é ${dayOfWeek}, ${dayOfMonth} de ${month} de ${year} às ${hours}:${minutes}.`;
+            }
+
+            // --- Funções de Renderização e Lógica do Admin ---
+
+            /**
+             * Renderiza os inputs de cor para cada dia da semana.
+             * Preenche com os valores existentes nas configurações globais.
+             */
+            function renderDailyColorsInputs() {
+                dailyColorsInputsDiv.innerHTML = '';
+                daysOfWeekKeys.forEach((dayKey, index) => {
+                    const dayName = daysOfWeekNames[index];
+                    const currentColor = globalSettings.dailyColors ? (globalSettings.dailyColors[dayKey] || '#e74c3c') : '#e74c3c';
+
+                    const div = document.createElement('div');
+                    div.className = 'color-input-group';
+                    div.innerHTML = `
+                        <label>${dayName}:</label>
+                        <input type="color" id="color-${dayKey}" value="${currentColor}">
+                        <input type="text" id="hex-${dayKey}" value="${currentColor}" pattern="#[0-9a-fA-F]{6}" title="Formato Hex: #RRGGBB">
+                    `;
+                    dailyColorsInputsDiv.appendChild(div);
+
+                    // Sincroniza color picker com text input
+                    div.querySelector(`#color-${dayKey}`).addEventListener('input', (e) => {
+                        div.querySelector(`#hex-${dayKey}`).value = e.target.value;
+                    });
+                    div.querySelector(`#hex-${dayKey}`).addEventListener('input', (e) => {
+                        const hexValue = e.target.value;
+                        if (/^#[0-9a-fA-F]{6}$/.test(hexValue)) {
+                            div.querySelector(`#color-${dayKey}`).value = hexValue;
+                        }
+                    });
+                });
+            }
+
+            /**
+             * Preenche o formulário de configurações globais com os dados do Firebase.
+             */
+            function fillSettingsForm() {
+                if (globalSettings.name) marmitariaNameInput.value = globalSettings.name;
+                if (globalSettings.slogan) marmitariaSloganInput.value = globalSettings.slogan;
+                
+                // Preenche a pré-visualização da logo
+                if (globalSettings.logoUrl) {
+                    settingsLogoPreview.src = globalSettings.logoUrl;
+                    settingsLogoPreview.style.display = 'block';
+                    console.log("Pré-visualização da logo carregada da URL:", globalSettings.logoUrl);
+                } else {
+                    settingsLogoPreview.style.display = 'none';
+                    settingsLogoPreview.src = '';
+                    console.log("Nenhuma URL de logo encontrada nas configurações para pré-visualização.");
+                }
+
+                if (globalSettings.logoPosition) logoPositionSelect.value = globalSettings.logoPosition;
+                renderDailyColorsInputs(); // Renderiza os inputs de cor com os valores atuais
+            }
+
+            /**
+             * Lida com o envio do formulário de configurações globais (exceto logo).
+             * Salva as configurações no Firebase.
+             * @param {Event} event - O evento de envio do formulário.
+             */
+            async function handleSettingsFormSubmit(event) {
+                event.preventDefault();
+
+                const newSettings = {
+                    name: marmitariaNameInput.value,
+                    slogan: marmitariaSloganInput.value,
+                    logoPosition: logoPositionSelect.value,
+                    dailyColors: {}
+                };
+
+                // Coleta as cores diárias
+                daysOfWeekKeys.forEach(dayKey => {
+                    const hexInput = document.getElementById(`hex-${dayKey}`);
+                    if (hexInput && /^#[0-9a-fA-F]{6}$/.test(hexInput.value)) {
+                        newSettings.dailyColors[dayKey] = hexInput.value;
                     }
                 });
-            });
-        }
 
-        /**
-         * Preenche o formulário de configurações globais com os dados do Firebase.
-         */
-        function fillSettingsForm() {
-            if (globalSettings.name) marmitariaNameInput.value = globalSettings.name;
-            if (globalSettings.slogan) marmitariaSloganInput.value = globalSettings.slogan;
-            
-            // Preenche a pré-visualização da logo
-            if (globalSettings.logoUrl) {
-                settingsLogoPreview.src = globalSettings.logoUrl;
-                settingsLogoPreview.style.display = 'block';
-            } else {
-                settingsLogoPreview.style.display = 'none';
-                settingsLogoPreview.src = '';
-            }
-
-            if (globalSettings.logoPosition) logoPositionSelect.value = globalSettings.logoPosition;
-            renderDailyColorsInputs(); // Renderiza os inputs de cor com os valores atuais
-        }
-
-        /**
-         * Lida com o envio do formulário de configurações globais (exceto logo).
-         * Salva as configurações no Firebase.
-         * @param {Event} event - O evento de envio do formulário.
-         */
-        async function handleSettingsFormSubmit(event) {
-            event.preventDefault();
-
-            const newSettings = {
-                name: marmitariaNameInput.value,
-                slogan: marmitariaSloganInput.value,
-                logoPosition: logoPositionSelect.value,
-                dailyColors: {}
-            };
-
-            // Coleta as cores diárias
-            daysOfWeekKeys.forEach(dayKey => {
-                const hexInput = document.getElementById(`hex-${dayKey}`);
-                if (hexInput && /^#[0-9a-fA-F]{6}$/.test(hexInput.value)) {
-                    newSettings.dailyColors[dayKey] = hexInput.value;
+                try {
+                    // Atualiza apenas os campos do formulário de configurações, a logo é separada
+                    await db.ref('settings').update(newSettings);
+                    showToast("Configurações salvas com sucesso!");
+                } catch (error) {
+                    console.error("Erro ao salvar configurações no Firebase:", error);
+                    showToast("Erro ao salvar configurações. Tente novamente. Verifique o console para detalhes.");
                 }
-            });
-
-            try {
-                // Atualiza apenas os campos do formulário de configurações, a logo é separada
-                await db.ref('settings').update(newSettings);
-                showToast("Configurações salvas com sucesso!");
-            } catch (error) {
-                console.error("Erro ao salvar configurações no Firebase:", error);
-                showToast("Erro ao salvar configurações. Tente novamente. Verifique o console para detalhes.");
-            }
-        }
-
-        /**
-         * Lida com o upload da logo para o Firebase Storage.
-         * Salva a URL da logo no Realtime Database.
-         */
-        async function handleLogoUpload() {
-            const file = settingsLogoUpload.files[0];
-            if (!file) {
-                showToast("Por favor, selecione um arquivo para upload.");
-                return;
             }
 
-            const confirmed = await showConfirmationModal("Tem certeza que deseja fazer upload desta imagem como a nova logo? Isso substituirá a logo atual.");
-            if (!confirmed) {
-                return;
+            /**
+             * Lida com o upload da logo para o Firebase Storage.
+             * Salva a URL da logo no Realtime Database.
+             */
+            async function handleLogoUpload() {
+                const file = settingsLogoUpload.files[0];
+                if (!file) {
+                    showToast("Por favor, selecione um arquivo para upload.");
+                    return;
+                }
+
+                const confirmed = await showConfirmationModal("Tem certeza que deseja fazer upload desta imagem como a nova logo? Isso substituirá a logo atual.");
+                if (!confirmed) {
+                    return;
+                }
+
+                // Cria uma referência para o arquivo no Storage. Usaremos um nome fixo para a logo principal.
+                const storageRef = storage.ref('logos/marmitaria_logo.png'); // Nome fixo para a logo
+
+                try {
+                    showToast("Fazendo upload da logo...");
+                    const snapshot = await storageRef.put(file);
+                    const downloadURL = await snapshot.ref.getDownloadURL();
+
+                    // Atualiza a URL da logo no Realtime Database
+                    await db.ref('settings').update({ logoUrl: downloadURL });
+
+                    showToast("Logo atualizada com sucesso!");
+                    settingsLogoPreview.src = downloadURL;
+                    settingsLogoPreview.style.display = 'block';
+                    console.log("Logo uploaded e URL salva:", downloadURL);
+                } catch (error) {
+                    console.error("Erro ao fazer upload da logo:", error);
+                    showToast("Erro ao fazer upload da logo. Tente novamente.");
+                }
             }
 
-            // Cria uma referência para o arquivo no Storage. Usaremos um nome fixo para a logo principal.
-            const storageRef = storage.ref('logos/marmitaria_logo.png'); // Nome fixo para a logo
 
-            try {
-                showToast("Fazendo upload da logo...");
-                const snapshot = await storageRef.put(file);
-                const downloadURL = await snapshot.ref.getDownloadURL();
+            /**
+             * Renderiza os itens do cardápio na lista de edição.
+             * Busca os dados de `menuData` (populados pelo Firebase) e os exibe.
+             */
+            function renderMenuItems() {
+                menuItemsList.innerHTML = ''; // Limpa a lista antes de renderizar
+                document.getElementById('loading-menu-items').style.display = 'none'; // Esconde o loading
 
-                // Atualiza a URL da logo no Realtime Database
-                await db.ref('settings').update({ logoUrl: downloadURL });
+                let hasItems = false;
 
-                showToast("Logo atualizada com sucesso!");
-                settingsLogoPreview.src = downloadURL;
-                settingsLogoPreview.style.display = 'block';
-            } catch (error) {
-                console.error("Erro ao fazer upload da logo:", error);
-                showToast("Erro ao fazer upload da logo. Tente novamente.");
-            }
-        }
-
-
-        /**
-         * Renderiza os itens do cardápio na lista de edição.
-         * Busca os dados de `menuData` (populados pelo Firebase) e os exibe.
-         */
-        function renderMenuItems() {
-            menuItemsList.innerHTML = ''; // Limpa a lista antes de renderizar
-            document.getElementById('loading-menu-items').style.display = 'none'; // Esconde o loading
-
-            let hasItems = false;
-
-            // Renderiza marmitas
-            if (menuData.marmitas && Object.keys(menuData.marmitas).length > 0) {
-                Object.entries(menuData.marmitas).forEach(([id, item]) => {
-                    const itemDiv = createMenuItemDiv(id, item, 'marmitas');
-                    menuItemsList.appendChild(itemDiv);
-                    hasItems = true;
-                });
-            }
-            
-            // Renderiza adicionais
-            if (menuData.adicionais && Object.keys(menuData.adicionais).length > 0) {
-                Object.entries(menuData.adicionais).forEach(([id, item]) => {
-                    const itemDiv = createMenuItemDiv(id, item, 'adicionais');
-                    menuItemsList.appendChild(itemDiv);
-                    hasItems = true;
-                });
-            }
-
-            if (!hasItems) {
-                menuItemsList.innerHTML = '<p>Nenhum item no cardápio.</p>';
-            }
-        }
-
-        /**
-         * Cria o elemento DIV para um item do cardápio na lista de edição.
-         * @param {string} itemId - O ID do item (chave do Firebase).
-         * @param {object} itemData - Os dados do item.
-         * @param {string} itemType - O tipo do item ('marmitas' ou 'adicionais').
-         * @returns {HTMLElement} O elemento DIV criado.
-         */
-        function createMenuItemDiv(itemId, itemData, itemType) {
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'menu-item-edit';
-            itemDiv.innerHTML = `
-                <span>${itemData.name} - R$${itemData.price ? itemData.price.toFixed(2).replace('.', ',') : '0,00'}</span>
-                <div class="menu-item-edit-actions">
-                    <button class="btn btn-info" onclick="editMenuItem('${itemId}', '${itemType}')">Editar</button>
-                    <button class="btn btn-danger" onclick="deleteMenuItem('${itemId}', '${itemType}')">Excluir</button>
-                </div>
-            `;
-            return itemDiv;
-        }
-
-        /**
-         * Renderiza a tabela de pedidos em suas respectivas abas.
-         */
-        function renderOrders() {
-            newOrdersTableBody.innerHTML = '';
-            acceptedOrdersTableBody.innerHTML = '';
-            completedOrdersTableBody.innerHTML = '';
-
-            loadingNewOrders.style.display = 'none';
-            loadingAcceptedOrders.style.display = 'none';
-            loadingCompletedOrders.style.display = 'none';
-
-            let hasNewOrders = false;
-            let hasAcceptedOrders = false;
-            let hasCompletedOrders = false;
-
-            // Converte o objeto de pedidos em um array para poder ordenar
-            const sortedOrders = Object.entries(allOrders).sort(([, a], [, b]) => {
-                // Ordena do mais novo para o mais antigo
-                return (b.timestamp || 0) - (a.timestamp || 0);
-            });
-
-            sortedOrders.forEach(([orderId, order]) => {
-                const orderDate = order.timestamp ? new Date(order.timestamp).toLocaleString('pt-BR') : 'N/A';
-                const total = order.total ? order.total.toFixed(2).replace('.', ',') : '0,00';
+                // Renderiza marmitas
+                if (menuData.marmitas && Object.keys(menuData.marmitas).length > 0) {
+                    Object.entries(menuData.marmitas).forEach(([id, item]) => {
+                        const itemDiv = createMenuItemDiv(id, item, 'marmitas');
+                        menuItemsList.appendChild(itemDiv);
+                        hasItems = true;
+                    });
+                }
                 
-                const orderRow = document.createElement('tr');
-                orderRow.innerHTML = `
-                    <td>${orderId}</td>
-                    <td>${order.clientName}</td>
-                    <td>R$ ${total}</td>
-                    <td>${order.status}</td>
-                    <td>${orderDate}</td>
-                    <td class="order-actions">
-                        <!-- Ações específicas para cada aba/status -->
-                    </td>
+                // Renderiza adicionais
+                if (menuData.adicionais && Object.keys(menuData.adicionais).length > 0) {
+                    Object.entries(menuData.adicionais).forEach(([id, item]) => {
+                        const itemDiv = createMenuItemDiv(id, item, 'adicionais');
+                        menuItemsList.appendChild(itemDiv);
+                        hasItems = true;
+                    });
+                }
+
+                if (!hasItems) {
+                    menuItemsList.innerHTML = '<p>Nenhum item no cardápio.</p>';
+                }
+            }
+
+            /**
+             * Cria o elemento DIV para um item do cardápio na lista de edição.
+             * @param {string} itemId - O ID do item (chave do Firebase).
+             * @param {object} itemData - Os dados do item.
+             * @param {string} itemType - O tipo do item ('marmitas' ou 'adicionais').
+             * @returns {HTMLElement} O elemento DIV criado.
+             */
+            function createMenuItemDiv(itemId, itemData, itemType) {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'menu-item-edit';
+                itemDiv.innerHTML = `
+                    <span>${itemData.name} - R$${itemData.price ? itemData.price.toFixed(2).replace('.', ',') : '0,00'}</span>
+                    <div class="menu-item-edit-actions">
+                        <button class="btn btn-info" onclick="editMenuItem('${itemId}', '${itemType}')">Editar</button>
+                        <button class="btn btn-danger" onclick="deleteMenuItem('${itemId}', '${itemType}')">Excluir</button>
+                    </div>
                 `;
-
-                const actionsCell = orderRow.querySelector('.order-actions');
-
-                if (order.status === 'Pendente') {
-                    orderRow.cells[3].innerText = 'Pendente'; // Garante que o status na coluna seja "Pendente"
-                    actionsCell.innerHTML = `
-                        <button class="btn btn-info" onclick="showOrderDetails('${orderId}')">Ver Detalhes</button>
-                    `;
-                    newOrdersTableBody.appendChild(orderRow);
-                    hasNewOrders = true;
-                } else if (['Aceito', 'Preparando', 'Saiu para Entrega'].includes(order.status)) {
-                    actionsCell.innerHTML = `
-                        <select class="status-select" onchange="updateOrderStatus('${orderId}', this.value)">
-                            <option value="Aceito" ${order.status === 'Aceito' ? 'selected' : ''}>Aceito</option>
-                            <option value="Preparando" ${order.status === 'Preparando' ? 'selected' : ''}>Preparando</option>
-                            <option value="Saiu para Entrega" ${order.status === 'Saiu para Entrega' ? 'selected' : ''}>Saiu para Entrega</option>
-                        </select>
-                        <button class="btn btn-warning" onclick="completeOrder('${orderId}')">Encerrar Pedido</button>
-                    `;
-                    acceptedOrdersTableBody.appendChild(orderRow);
-                    hasAcceptedOrders = true;
-                } else if (['Entregue', 'Cancelado', 'Recusado', 'Encerrado'].includes(order.status)) {
-                    actionsCell.innerHTML = `
-                        <button class="btn btn-info" onclick="showOrderDetails('${orderId}')">Ver Detalhes</button>
-                    `;
-                    completedOrdersTableBody.appendChild(orderRow);
-                    hasCompletedOrders = true;
-                }
-            });
-
-            if (!hasNewOrders) {
-                newOrdersTableBody.innerHTML = '<tr><td colspan="5">Nenhum novo pedido pendente.</td></tr>';
-            }
-            if (!hasAcceptedOrders) {
-                acceptedOrdersTableBody.innerHTML = '<tr><td colspan="6">Nenhum pedido aceito ou em andamento.</td></tr>';
-            }
-            if (!hasCompletedOrders) {
-                completedOrdersTableBody.innerHTML = '<tr><td colspan="6">Nenhum pedido encerrado.</td></tr>';
-            }
-        }
-
-        /**
-         * Lida com a troca de abas de pedidos.
-         * @param {string} tabId - O ID da aba a ser ativada ('new-orders', 'accepted-orders', 'completed-orders').
-         */
-        function switchOrderTab(tabId) {
-            // Remove 'active' de todos os botões e conteúdos
-            orderTabButtons.forEach(button => button.classList.remove('active'));
-            document.querySelectorAll('.order-tab-content').forEach(content => content.classList.remove('active'));
-
-            // Adiciona 'active' ao botão e conteúdo corretos
-            document.querySelector(`.order-tab-button[data-tab="${tabId}"]`).classList.add('active');
-            document.getElementById(`${tabId}-tab`).classList.add('active');
-        }
-        
-        /**
-         * Lida com o envio do formulário de cardápio (adicionar/editar item).
-         * Salva ou atualiza o item no Firebase.
-         * @param {Event} event - O evento de envio do formulário.
-         */
-        async function handleMenuFormSubmit(event) {
-            event.preventDefault();
-            const itemId = document.getElementById('menu-item-id').value;
-            const itemName = document.getElementById('item-name').value;
-            const itemDescription = document.getElementById('item-description').value;
-            const itemPrice = parseFloat(document.getElementById('item-price').value);
-            const itemType = document.getElementById('item-type').value;
-
-            const itemData = {
-                // Se for um novo item, gera um ID; se for edição, usa o ID existente
-                id: itemId || db.ref(`menu/${itemType}`).push().key,
-                name: itemName,
-                description: itemDescription,
-                price: itemPrice,
-                image: '' // Imagem agora é fixa/placeholder no cliente, não é editável aqui
-            };
-            
-            try {
-                if (itemId) {
-                    // Atualiza item existente
-                    await db.ref(`menu/${itemType}/${itemId}`).update(itemData);
-                    showToast(`Item "${itemName}" atualizado com sucesso!`);
-                } else {
-                    // Adiciona novo item
-                    await db.ref(`menu/${itemType}/${itemData.id}`).set(itemData); // Usa o ID gerado
-                    showToast(`Item "${itemName}" adicionado com sucesso!`);
-                }
-                clearForm();
-            } catch (error) {
-                console.error("Erro ao salvar item no Firebase:", error);
-                showToast("Erro ao salvar item. Tente novamente. Verifique o console para detalhes.");
-            }
-        }
-        
-        /**
-         * Preenche o formulário com os dados de um item para edição.
-         * @param {string} itemId - O ID do item (chave do Firebase).
-         * @param {string} itemType - O tipo do item ('marmitas' ou 'adicionais').
-         */
-        function editMenuItem(itemId, itemType) {
-            const itemToEdit = menuData[itemType] ? menuData[itemType][itemId] : null;
-
-            if (itemToEdit) {
-                document.getElementById('menu-item-id').value = itemId;
-                document.getElementById('item-name').value = itemToEdit.name;
-                document.getElementById('item-description').value = itemToEdit.description;
-                document.getElementById('item-price').value = itemToEdit.price;
-                document.getElementById('item-type').value = itemType; // Define o tipo correto
-                showToast(`Editando item: ${itemToEdit.name}`);
-            } else {
-                showToast('Item não encontrado para edição.');
-            }
-        }
-
-        /**
-         * Exclui um item do cardápio do Firebase.
-         * @param {string} itemId - O ID do item (chave do Firebase).
-         * @param {string} itemType - O tipo do item ('marmitas' ou 'adicionais').
-         */
-        async function deleteMenuItem(itemId, itemType) {
-            const confirmed = await showConfirmationModal("Tem certeza que deseja excluir este item?");
-            if (confirmed) {
-                try {
-                    await db.ref(`menu/${itemType}/${itemId}`).remove();
-                    showToast("Item excluído com sucesso!");
-                } catch (error) {
-                    console.error("Erro ao excluir item do Firebase:", error);
-                    showToast("Erro ao excluir item. Tente novamente. Verifique o console para detalhes.");
-                }
-            }
-        }
-
-        /**
-         * Exibe os detalhes de um pedido em uma modal e permite aceitar/recusar.
-         * @param {string} orderId - O ID do pedido.
-         */
-        function showOrderDetails(orderId) {
-            const order = allOrders[orderId];
-            if (!order) {
-                showToast('Pedido não encontrado.');
-                return;
+                return itemDiv;
             }
 
-            currentOrderIdInModal = orderId; // Armazena o ID do pedido atual na modal
+            /**
+             * Renderiza a tabela de pedidos em suas respectivas abas.
+             */
+            function renderOrders() {
+                newOrdersTableBody.innerHTML = '';
+                acceptedOrdersTableBody.innerHTML = '';
+                completedOrdersTableBody.innerHTML = '';
 
-            modalTitle.innerText = `Detalhes do Pedido #${orderId}`;
-            let detailsHtml = `
-                <p><strong>Cliente:</strong> ${order.clientName}</p>
-                <p><strong>Endereço:</strong> ${order.clientAddress}</p>
-                <p><strong>Telefone:</strong> ${order.clientPhone}</p>
-                <p><strong>Pagamento:</strong> ${order.paymentMethod}</p>
-                <p><strong>Total:</strong> R$ ${order.total ? order.total.toFixed(2).replace('.', ',') : '0,00'}</p>
-                <p><strong>Status:</strong> ${order.status}</p>
-                <p><strong>Data/Hora:</strong> ${order.timestamp ? new Date(order.timestamp).toLocaleString('pt-BR') : 'N/A'}</p>
-                <h4>Itens do Pedido:</h4>
-                <ul>
-            `;
-            if (order.items && Array.isArray(order.items)) {
-                order.items.forEach(item => {
-                    detailsHtml += `<li>${item.quantity}x ${item.name} (R$ ${item.price ? item.price.toFixed(2).replace('.', ',') : '0,00'})</li>`;
+                loadingNewOrders.style.display = 'none';
+                loadingAcceptedOrders.style.display = 'none';
+                loadingCompletedOrders.style.display = 'none';
+
+                let hasNewOrders = false;
+                let hasAcceptedOrders = false;
+                let hasCompletedOrders = false;
+
+                // Converte o objeto de pedidos em um array para poder ordenar
+                const sortedOrders = Object.entries(allOrders).sort(([, a], [, b]) => {
+                    // Ordena do mais novo para o mais antigo
+                    return (b.timestamp || 0) - (a.timestamp || 0);
                 });
-            } else {
-                detailsHtml += '<li>Nenhum item detalhado disponível.</li>';
-            }
-            detailsHtml += `</ul>`;
-            modalOrderDetailsContent.innerHTML = detailsHtml;
 
-            // Mostra/esconde botões de aceitar/recusar dependendo do status
-            if (order.status === 'Pendente') {
-                acceptOrderBtn.style.display = 'inline-block';
-                rejectOrderBtn.style.display = 'inline-block';
-            } else {
-                acceptOrderBtn.style.display = 'none';
-                rejectOrderBtn.style.display = 'none';
-            }
+                sortedOrders.forEach(([orderId, order]) => {
+                    const orderDate = order.timestamp ? new Date(order.timestamp).toLocaleString('pt-BR') : 'N/A';
+                    const total = order.total ? order.total.toFixed(2).replace('.', ',') : '0,00';
+                    
+                    const orderRow = document.createElement('tr');
+                    orderRow.innerHTML = `
+                        <td>${orderId}</td>
+                        <td>${order.clientName}</td>
+                        <td>R$ ${total}</td>
+                        <td>${order.status}</td>
+                        <td>${orderDate}</td>
+                        <td class="order-actions">
+                            <!-- Ações específicas para cada aba/status -->
+                        </td>
+                    `;
 
-            orderDetailModal.style.display = 'flex'; // Exibe a modal de detalhes
-        }
+                    const actionsCell = orderRow.querySelector('.order-actions');
 
-        /**
-         * Aceita um pedido, mudando seu status para 'Aceito'.
-         */
-        async function acceptOrder() {
-            if (!currentOrderIdInModal) return;
-            const confirmed = await showConfirmationModal(`Tem certeza que deseja aceitar o pedido #${currentOrderIdInModal}?`);
-            if (confirmed) {
-                try {
-                    await db.ref(`orders/${currentOrderIdInModal}`).update({ status: 'Aceito' });
-                    showToast(`Pedido #${currentOrderIdInModal} aceito!`);
-                    closeModal(); // Fecha a modal após a ação
-                } catch (error) {
-                    console.error("Erro ao aceitar pedido:", error);
-                    showToast("Erro ao aceitar pedido. Tente novamente.");
+                    if (order.status === 'Pendente') {
+                        orderRow.cells[3].innerText = 'Pendente'; // Garante que o status na coluna seja "Pendente"
+                        actionsCell.innerHTML = `
+                            <button class="btn btn-info" onclick="showOrderDetails('${orderId}')">Ver Detalhes</button>
+                        `;
+                        newOrdersTableBody.appendChild(orderRow);
+                        hasNewOrders = true;
+                    } else if (['Aceito', 'Preparando', 'Saiu para Entrega'].includes(order.status)) {
+                        actionsCell.innerHTML = `
+                            <select class="status-select" onchange="updateOrderStatus('${orderId}', this.value)">
+                                <option value="Aceito" ${order.status === 'Aceito' ? 'selected' : ''}>Aceito</option>
+                                <option value="Preparando" ${order.status === 'Preparando' ? 'selected' : ''}>Preparando</option>
+                                <option value="Saiu para Entrega" ${order.status === 'Saiu para Entrega' ? 'selected' : ''}>Saiu para Entrega</option>
+                                <option value="Entregue">Entregue</option> <!-- Adicionado para permitir mudança para Encerrado -->
+                            </select>
+                            <button class="btn btn-warning" onclick="completeOrder('${orderId}')">Encerrar Pedido</button>
+                        `;
+                        acceptedOrdersTableBody.appendChild(orderRow);
+                        hasAcceptedOrders = true;
+                    } else if (['Entregue', 'Cancelado', 'Recusado', 'Encerrado'].includes(order.status)) {
+                        actionsCell.innerHTML = `
+                            <button class="btn btn-info" onclick="showOrderDetails('${orderId}')">Ver Detalhes</button>
+                        `;
+                        completedOrdersTableBody.appendChild(orderRow);
+                        hasCompletedOrders = true;
+                    }
+                });
+
+                if (!hasNewOrders) {
+                    newOrdersTableBody.innerHTML = '<tr><td colspan="5">Nenhum novo pedido pendente.</td></tr>';
+                }
+                if (!hasAcceptedOrders) {
+                    acceptedOrdersTableBody.innerHTML = '<tr><td colspan="6">Nenhum pedido aceito ou em andamento.</td></tr>';
+                }
+                if (!hasCompletedOrders) {
+                    completedOrdersTableBody.innerHTML = '<tr><td colspan="6">Nenhum pedido encerrado.</td></tr>';
                 }
             }
-        }
 
-        /**
-         * Recusa um pedido, mudando seu status para 'Recusado'.
-         */
-        async function rejectOrder() {
-            if (!currentOrderIdInModal) return;
-            const confirmed = await showConfirmationModal(`Tem certeza que deseja recusar o pedido #${currentOrderIdInModal}?`);
-            if (confirmed) {
+            /**
+             * Lida com a troca de abas de pedidos.
+             * @param {string} tabId - O ID da aba a ser ativada ('new-orders', 'accepted-orders', 'completed-orders').
+             */
+            function switchOrderTab(tabId) {
+                // Remove 'active' de todos os botões e conteúdos
+                orderTabButtons.forEach(button => button.classList.remove('active'));
+                document.querySelectorAll('.order-tab-content').forEach(content => content.classList.remove('active'));
+
+                // Adiciona 'active' ao botão e conteúdo corretos
+                document.querySelector(`.order-tab-button[data-tab="${tabId}"]`).classList.add('active');
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+            }
+            
+            /**
+             * Lida com o envio do formulário de cardápio (adicionar/editar item).
+             * Salva ou atualiza o item no Firebase.
+             * @param {Event} event - O evento de envio do formulário.
+             */
+            async function handleMenuFormSubmit(event) {
+                event.preventDefault();
+                const itemId = document.getElementById('menu-item-id').value;
+                const itemName = document.getElementById('item-name').value;
+                const itemDescription = document.getElementById('item-description').value;
+                const itemPrice = parseFloat(document.getElementById('item-price').value);
+                const itemType = document.getElementById('item-type').value;
+
+                const itemData = {
+                    // Se for um novo item, gera um ID; se for edição, usa o ID existente
+                    id: itemId || db.ref(`menu/${itemType}`).push().key,
+                    name: itemName,
+                    description: itemDescription,
+                    price: itemPrice,
+                    image: '' // Imagem agora é fixa/placeholder no cliente, não é editável aqui
+                };
+                
                 try {
-                    await db.ref(`orders/${currentOrderIdInModal}`).update({ status: 'Recusado' });
-                    showToast(`Pedido #${currentOrderIdInModal} recusado!`);
-                    closeModal(); // Fecha a modal após a ação
+                    if (itemId) {
+                        // Atualiza item existente
+                        await db.ref(`menu/${itemType}/${itemId}`).update(itemData);
+                        showToast(`Item "${itemName}" atualizado com sucesso!`);
+                    } else {
+                        // Adiciona novo item
+                        await db.ref(`menu/${itemType}/${itemData.id}`).set(itemData); // Usa o ID gerado
+                        showToast(`Item "${itemName}" adicionado com sucesso!`);
+                    }
+                    clearForm();
                 } catch (error) {
-                    console.error("Erro ao recusar pedido:", error);
-                    showToast("Erro ao recusar pedido. Tente novamente.");
+                    console.error("Erro ao salvar item no Firebase:", error);
+                    showToast("Erro ao salvar item. Tente novamente. Verifique o console para detalhes.");
                 }
             }
-        }
+            
+            /**
+             * Preenche o formulário com os dados de um item para edição.
+             * @param {string} itemId - O ID do item (chave do Firebase).
+             * @param {string} itemType - O tipo do item ('marmitas' ou 'adicionais').
+             */
+            function editMenuItem(itemId, itemType) {
+                const itemToEdit = menuData[itemType] ? menuData[itemType][itemId] : null;
 
-        /**
-         * Atualiza o status de um pedido no Firebase (usado para pedidos aceitos).
-         * @param {string} orderId - O ID do pedido (chave do Firebase).
-         * @param {string} newStatus - O novo status do pedido.
-         */
-        async function updateOrderStatus(orderId, newStatus) {
-            try {
-                await db.ref(`orders/${orderId}`).update({ status: newStatus });
-                showToast(`Status do pedido ${orderId} atualizado para "${newStatus}"!`);
-            } catch (error) {
-                console.error("Erro ao atualizar status do pedido no Firebase:", error);
-                showToast("Erro ao atualizar status do pedido. Tente novamente. Verifique o console para detalhes.");
-            }
-        }
-
-        /**
-         * Encerra um pedido, mudando seu status para 'Encerrado'.
-         * @param {string} orderId - O ID do pedido.
-         */
-        async function completeOrder(orderId) {
-            const confirmed = await showConfirmationModal(`Tem certeza que deseja encerrar o pedido #${orderId}? Isso o moverá para a lista de pedidos encerrados.`);
-            if (confirmed) {
-                try {
-                    await db.ref(`orders/${orderId}`).update({ status: 'Encerrado' });
-                    showToast(`Pedido #${orderId} encerrado!`);
-                } catch (error) {
-                    console.error("Erro ao encerrar pedido:", error);
-                    showToast("Erro ao encerrar pedido. Tente novamente.");
+                if (itemToEdit) {
+                    document.getElementById('menu-item-id').value = itemId;
+                    document.getElementById('item-name').value = itemToEdit.name;
+                    document.getElementById('item-description').value = itemToEdit.description;
+                    document.getElementById('item-price').value = itemToEdit.price;
+                    document.getElementById('item-type').value = itemType; // Define o tipo correto
+                    showToast(`Editando item: ${itemToEdit.name}`);
+                } else {
+                    showToast('Item não encontrado para edição.');
                 }
             }
-        }
 
-        /**
-         * Limpa o formulário de cardápio.
-         */
-        function clearForm() {
-            menuForm.reset();
-            document.getElementById('menu-item-id').value = ''; // Limpa o ID oculto
-            showToast("Formulário limpo.");
-        }
+            /**
+             * Exclui um item do cardápio do Firebase.
+             * @param {string} itemId - O ID do item (chave do Firebase).
+             * @param {string} itemType - O tipo do item ('marmitas' ou 'adicionais').
+             */
+            async function deleteMenuItem(itemId, itemType) {
+                const confirmed = await showConfirmationModal("Tem certeza que deseja excluir este item?");
+                if (confirmed) {
+                    try {
+                        await db.ref(`menu/${itemType}/${itemId}`).remove();
+                        showToast("Item excluído com sucesso!");
+                    } catch (error) {
+                        console.error("Erro ao excluir item do Firebase:", error);
+                        showToast("Erro ao excluir item. Tente novamente. Verifique o console para detalhes.");
+                    }
+                }
+            }
 
-        // --- Inicialização ---
-        document.addEventListener('DOMContentLoaded', () => {
+            /**
+             * Exibe os detalhes de um pedido em uma modal e permite aceitar/recusar.
+             * @param {string} orderId - O ID do pedido.
+             */
+            function showOrderDetails(orderId) {
+                const order = allOrders[orderId];
+                if (!order) {
+                    showToast('Pedido não encontrado.');
+                    return;
+                }
+
+                currentOrderIdInModal = orderId; // Armazena o ID do pedido atual na modal
+
+                modalTitle.innerText = `Detalhes do Pedido #${orderId}`;
+                let detailsHtml = `
+                    <p><strong>Cliente:</strong> ${order.clientName}</p>
+                    <p><strong>Endereço:</strong> ${order.clientAddress}</p>
+                    <p><strong>Telefone:</strong> ${order.clientPhone}</p>
+                    <p><strong>Pagamento:</strong> ${order.paymentMethod}</p>
+                    <p><strong>Total:</strong> R$ ${order.total ? order.total.toFixed(2).replace('.', ',') : '0,00'}</p>
+                    <p><strong>Status:</strong> ${order.status}</p>
+                    <p><strong>Data/Hora:</strong> ${order.timestamp ? new Date(order.timestamp).toLocaleString('pt-BR') : 'N/A'}</p>
+                    <h4>Itens do Pedido:</h4>
+                    <ul>
+                `;
+                if (order.items && Array.isArray(order.items)) {
+                    order.items.forEach(item => {
+                        detailsHtml += `<li>${item.quantity}x ${item.name} (R$ ${item.price ? item.price.toFixed(2).replace('.', ',') : '0,00'})</li>`;
+                    });
+                } else {
+                    detailsHtml += '<li>Nenhum item detalhado disponível.</li>';
+                }
+                detailsHtml += `</ul>`;
+                modalOrderDetailsContent.innerHTML = detailsHtml;
+
+                // Mostra/esconde botões de aceitar/recusar dependendo do status
+                if (order.status === 'Pendente') {
+                    acceptOrderBtn.style.display = 'inline-block';
+                    rejectOrderBtn.style.display = 'inline-block';
+                } else {
+                    acceptOrderBtn.style.display = 'none';
+                    rejectOrderBtn.style.display = 'none';
+                }
+
+                orderDetailModal.style.display = 'flex'; // Exibe a modal de detalhes
+            }
+
+            /**
+             * Aceita um pedido, mudando seu status para 'Aceito'.
+             */
+            async function acceptOrder() {
+                if (!currentOrderIdInModal) return;
+                const confirmed = await showConfirmationModal(`Tem certeza que deseja aceitar o pedido #${currentOrderIdInModal}?`);
+                if (confirmed) {
+                    try {
+                        await db.ref(`orders/${currentOrderIdInModal}`).update({ status: 'Aceito' });
+                        showToast(`Pedido #${currentOrderIdInModal} aceito!`);
+                        console.log(`Pedido #${currentOrderIdInModal} status alterado para: Aceito`);
+                        closeModal(); // Fecha a modal após a ação
+                    } catch (error) {
+                        console.error("Erro ao aceitar pedido:", error);
+                        showToast("Erro ao aceitar pedido. Tente novamente.");
+                    }
+                }
+            }
+
+            /**
+             * Recusa um pedido, mudando seu status para 'Recusado'.
+             */
+            async function rejectOrder() {
+                if (!currentOrderIdInModal) return;
+                const confirmed = await showConfirmationModal(`Tem certeza que deseja recusar o pedido #${currentOrderIdInModal}?`);
+                if (confirmed) {
+                    try {
+                        await db.ref(`orders/${currentOrderIdInModal}`).update({ status: 'Recusado' });
+                        showToast(`Pedido #${currentOrderIdInModal} recusado!`);
+                        console.log(`Pedido #${currentOrderIdInModal} status alterado para: Recusado`);
+                        closeModal(); // Fecha a modal após a ação
+                    } catch (error) {
+                        console.error("Erro ao recusar pedido:", error);
+                        showToast("Erro ao recusar pedido. Tente novamente.");
+                    }
+                }
+            }
+
+            /**
+             * Atualiza o status de um pedido no Firebase (usado para pedidos aceitos).
+             * @param {string} orderId - O ID do pedido (chave do Firebase).
+             * @param {string} newStatus - O novo status do pedido.
+             */
+            async function updateOrderStatus(orderId, newStatus) {
+                try {
+                    await db.ref(`orders/${orderId}`).update({ status: newStatus });
+                    showToast(`Status do pedido ${orderId} atualizado para "${newStatus}"!`);
+                    console.log(`Pedido #${orderId} status alterado para: ${newStatus}`);
+                } catch (error) {
+                    console.error("Erro ao atualizar status do pedido no Firebase:", error);
+                    showToast("Erro ao atualizar status do pedido. Tente novamente. Verifique o console para detalhes.");
+                }
+            }
+
+            /**
+             * Encerra um pedido, mudando seu status para 'Encerrado'.
+             * @param {string} orderId - O ID do pedido.
+             */
+            async function completeOrder(orderId) {
+                const confirmed = await showConfirmationModal(`Tem certeza que deseja encerrar o pedido #${orderId}? Isso o moverá para a lista de pedidos encerrados.`);
+                if (confirmed) {
+                    try {
+                        await db.ref(`orders/${orderId}`).update({ status: 'Encerrado' });
+                        showToast(`Pedido #${orderId} encerrado!`);
+                        console.log(`Pedido #${orderId} status alterado para: Encerrado`);
+                    } catch (error) {
+                        console.error("Erro ao encerrar pedido:", error);
+                        showToast("Erro ao encerrar pedido. Tente novamente.");
+                    }
+                }
+            }
+
+            /**
+             * Exclui todos os pedidos do Firebase.
+             */
+            async function deleteAllOrders() {
+                const confirmed = await showConfirmationModal("Tem certeza que deseja EXCLUIR TODOS OS PEDIDOS? Esta ação é irreversível e removerá todos os pedidos do sistema.");
+                if (confirmed) {
+                    try {
+                        await db.ref('orders').remove();
+                        showToast("Todos os pedidos foram excluídos com sucesso!");
+                        console.log("Todos os pedidos foram excluídos.");
+                    } catch (error) {
+                        console.error("Erro ao excluir todos os pedidos:", error);
+                        showToast("Erro ao excluir todos os pedidos. Tente novamente.");
+                    }
+                }
+            }
+
+
+            /**
+             * Limpa o formulário de cardápio.
+             */
+            function clearForm() {
+                menuForm.reset();
+                document.getElementById('menu-item-id').value = ''; // Limpa o ID oculto
+                showToast("Formulário limpo.");
+            }
+
+            // --- Inicialização ---
             menuForm.addEventListener('submit', handleMenuFormSubmit);
             btnClearForm.addEventListener('click', clearForm);
             settingsForm.addEventListener('submit', handleSettingsFormSubmit);
@@ -1232,7 +1280,7 @@
 
             updateDateTime(); // Atualiza a data e hora ao carregar
             setInterval(updateDateTime, 60000); // Atualiza a cada minuto
-        });
+        };
     </script>
 </body>
 </html>
