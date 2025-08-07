@@ -466,31 +466,37 @@
                     <button onclick="trackOrder()">Buscar Pedido</button>
                     <div id="order-status" class="order-status"></div>
 
-                    <div id="update-status-form" style="display:none;">
-                        <h3>Atualizar Status (Simulação)</h3>
-                        <label for="updateOrderId">Código do Pedido:</label>
-                        <input type="text" id="updateOrderId" placeholder="Digite o código">
-                        <label for="newStatus">Novo Status:</label>
-                        <select id="newStatus">
-                            <option value="Pendente">Pendente</option>
-                            <option value="Preparando">Preparando</option>
-                            <option value="Saiu para Entrega">Saiu para Entrega</option>
-                            <option value="Entregue">Entregue</option>
-                            <option value="Cancelado">Cancelado</option>
-                        </select>
-                        <button class="btn-update-status" onclick="updateOrderStatus()">Atualizar Status</button>
-                        <div id="update-status-message"></div>
-                    </div>
+                    <!-- Formulário de atualização de status removido, pois pertence ao painel de controle -->
                 </div>
             </aside>
         </div>
     </div>
 
-    <script>
-        // --- Variáveis de Estado (Simuladas - serão substituídas pelo Firebase) ---
-        let menuData = { marmitas: [], adicionais: [] };
-        let orders = {};
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAFp_iujrtqjiTU5yq2yNSBIpwgjQZZyns",
+            authDomain: "aquilesplacarpro.firebaseapp.com",
+            databaseURL: "https://aquilesplacarpro-default-rtdb.firebaseio.com",
+            projectId: "aquilesplacarpro",
+            storageBucket: "aquilesplacarpro.firebasestorage.app",
+            messagingSenderId: "922321609151",
+            appId: "1:922321609151:web:ba51f5b21b322cf0a4c10a"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database(); // Get a reference to the database service
+
+        // --- Variáveis de Estado ---
+        let menuData = { marmitas: [], adicionais: [] }; // Agora será populado pelo Firebase
+        let cart = new Map();
+
+        // --- Elementos do DOM ---
         const marmitasList = document.getElementById('marmitas-list');
         const adicionaisList = document.getElementById('adicionais-list');
         const cartList = document.getElementById('cart-list');
@@ -502,30 +508,50 @@
         const orderIdInput = document.getElementById('orderId');
         const orderStatusDiv = document.getElementById('order-status');
         const toast = document.getElementById('toast');
+        const loadingMarmitas = document.getElementById('loading-marmitas');
+        const loadingAdicionais = document.getElementById('loading-adicionais');
 
-        let cart = new Map();
+        // --- Funções de Lógica do Aplicativo ---
 
-        // --- Funções de Renderização e Lógica do Carrinho (As mesmas do código anterior) ---
-        // As funções addToCart, removeFromCart, showCheckout, showToast, renderCart e findMenuItem
-        // são as mesmas. Elas estão prontas para usar os dados que virão do Firebase.
-
+        /**
+         * Encontra um item do menu pelo seu ID.
+         * @param {number} itemId - O ID do item a ser encontrado.
+         * @returns {object|undefined} O objeto do item se encontrado, caso contrário, undefined.
+         */
         function findMenuItem(itemId) {
-            let item = menuData.marmitas.find(m => m.id === itemId);
-            if (!item) {
-                item = menuData.adicionais.find(a => a.id === itemId);
+            let item = null;
+            // Verifica se menuData.marmitas existe e é um objeto/array
+            if (menuData.marmitas && typeof menuData.marmitas === 'object') {
+                // Converte para array de valores se for um objeto (como vem do Firebase)
+                item = Object.values(menuData.marmitas).find(m => m.id === itemId);
+            }
+            if (!item && menuData.adicionais && typeof menuData.adicionais === 'object') {
+                item = Object.values(menuData.adicionais).find(a => a.id === itemId);
             }
             return item;
         }
 
+        /**
+         * Renderiza os itens do cardápio na interface.
+         * Busca os dados de `menuData` e os exibe nas seções de marmitas e adicionais.
+         */
         function renderMenu() {
             marmitasList.innerHTML = '';
             adicionaisList.innerHTML = '';
 
+            /**
+             * Cria o HTML para um único item do menu.
+             * @param {object} item - O objeto do item do menu.
+             * @param {boolean} isMarmita - True se o item for uma marmita (para incluir descrição).
+             * @returns {string} O HTML gerado para o item.
+             */
             function createMenuItemHTML(item, isMarmita = true) {
-                const descriptionHTML = isMarmita ? `<p>${item.description}</p>` : '';
+                const descriptionHTML = isMarmita && item.description ? `<p>${item.description}</p>` : '';
+                // Fallback para imagem caso a URL esteja vazia ou inválida
+                const imageUrl = item.image && item.image.startsWith('http') ? item.image : `https://placehold.co/80x80/e74c3c/ffffff?text=${item.name.substring(0, Math.min(item.name.length, 5))}`;
                 return `
                     <div class="menu-item" data-id="${item.id}">
-                        <img src="${item.image}" alt="${item.name}" class="item-image">
+                        <img src="${imageUrl}" alt="${item.name}" class="item-image" onerror="this.onerror=null;this.src='https://placehold.co/80x80/e74c3c/ffffff?text=Item';">
                         <div class="item-details">
                             <h3>${item.name}</h3>
                             ${descriptionHTML}
@@ -538,16 +564,16 @@
                 `;
             }
             
-            if (menuData.marmitas.length > 0) {
-                menuData.marmitas.forEach(item => {
+            if (menuData.marmitas && Object.keys(menuData.marmitas).length > 0) {
+                Object.values(menuData.marmitas).forEach(item => {
                     marmitasList.innerHTML += createMenuItemHTML(item);
                 });
             } else {
                 marmitasList.innerHTML = '<p>Nenhum item disponível no cardápio de marmitas hoje.</p>';
             }
 
-            if (menuData.adicionais.length > 0) {
-                menuData.adicionais.forEach(item => {
+            if (menuData.adicionais && Object.keys(menuData.adicionais).length > 0) {
+                Object.values(menuData.adicionais).forEach(item => {
                     adicionaisList.innerHTML += createMenuItemHTML(item, false);
                 });
             } else {
@@ -555,6 +581,10 @@
             }
         }
 
+        /**
+         * Renderiza os itens no carrinho de compras.
+         * Atualiza a lista de itens e o total do carrinho na interface.
+         */
         function renderCart() {
             cartList.innerHTML = '';
             let total = 0;
@@ -585,6 +615,10 @@
             cartTotalSpan.innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
         }
 
+        /**
+         * Adiciona um item ao carrinho ou incrementa sua quantidade.
+         * @param {number} itemId - O ID do item a ser adicionado.
+         */
         function addToCart(itemId) {
             const item = findMenuItem(itemId);
             if (item) {
@@ -598,6 +632,10 @@
             }
         }
 
+        /**
+         * Remove um item do carrinho ou decrementa sua quantidade.
+         * @param {number} itemId - O ID do item a ser removido.
+         */
         function removeFromCart(itemId) {
             const quantity = cart.get(itemId);
             if (quantity > 1) {
@@ -608,98 +646,160 @@
             renderCart();
         }
 
+        /**
+         * Exibe o formulário de checkout e esconde a seção do carrinho.
+         */
         function showCheckout() {
             document.querySelector('.cart-section').style.display = 'none';
             checkoutFormSection.style.display = 'block';
         }
 
+        /**
+         * Exibe uma mensagem de toast na parte inferior da tela.
+         * @param {string} message - A mensagem a ser exibida.
+         */
         function showToast(message) {
             toast.innerText = message;
             toast.className = "toast show";
             setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
-        function handleDeliveryFormSubmit(event) {
+        /**
+         * Lida com o envio do formulário de entrega.
+         * Salva o pedido no Firebase e abre o WhatsApp com a mensagem do pedido.
+         * @param {Event} event - O evento de envio do formulário.
+         */
+        async function handleDeliveryFormSubmit(event) {
             event.preventDefault();
             const formData = new FormData(deliveryForm);
             
             const clientName = formData.get('name');
             const clientAddress = formData.get('address');
-            const clientPhone = formData.get('phone').replace(/\D/g, '');
+            const clientPhone = formData.get('phone').replace(/\D/g, ''); // Remove caracteres não numéricos
             const paymentMethod = formData.get('payment');
 
             let cartItemsText = '--- Pedido ---\n';
             let total = 0;
+            const itemsForFirebase = [];
+
             cart.forEach((quantity, itemId) => {
                 const item = findMenuItem(itemId);
                 if (item) {
                     const subtotal = item.price * quantity;
                     total += subtotal;
                     cartItemsText += `${quantity}x ${item.name} (R$ ${subtotal.toFixed(2).replace('.', ',')})\n`;
+                    itemsForFirebase.push({
+                        id: itemId,
+                        name: item.name,
+                        price: item.price,
+                        quantity: quantity
+                    });
                 }
             });
 
             const totalText = `\n*Total do Pedido:* R$ ${total.toFixed(2).replace('.', ',')}`;
-            const clientInfoText = `\n--- Dados para Entrega ---\n*Nome:* ${clientName}\n*Endereço:* ${clientAddress}\n*Forma de Pagamento:* ${paymentMethod}`;
+            const clientInfoText = `\n--- Dados para Entrega ---\n*Nome:* ${clientName}\n*Endereço:* ${clientAddress}\n*Telefone:* ${clientPhone}\n*Forma de Pagamento:* ${paymentMethod}`;
 
-            const fullMessage = encodeURIComponent(
-                'Olá, gostaria de fazer o seguinte pedido:\n\n' +
-                cartItemsText +
-                totalText +
-                clientInfoText
-            );
+            try {
+                // Salva o pedido no Firebase Realtime Database
+                const newOrderRef = db.ref('orders').push(); // Cria um ID único para o pedido
+                const orderId = newOrderRef.key; // Pega o ID gerado pelo Firebase
 
-            // WhatsApp com o número definido
-            const whatsappNumber = '18981561535'; 
-            const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${fullMessage}`;
+                await newOrderRef.set({
+                    id: orderId, // Armazena o ID também dentro do objeto
+                    clientName,
+                    clientAddress,
+                    clientPhone,
+                    paymentMethod,
+                    items: itemsForFirebase, // Usa o array de itens formatado
+                    total,
+                    status: 'Pendente', // Status inicial do pedido
+                    timestamp: firebase.database.ServerValue.TIMESTAMP // Timestamp do servidor
+                });
 
-            window.open(whatsappUrl, '_blank');
-            
-            // [FIREBASE] AQUI VOCÊ ENVIARIA OS DADOS DO PEDIDO PARA O FIREBASE
-            // Exemplo: firebase.database().ref('orders').push({
-            //   clientName, clientAddress, clientPhone, paymentMethod,
-            //   items: Array.from(cart.entries()), // Converte o Map para um array
-            //   total,
-            //   status: 'Pendente',
-            //   timestamp: Date.now()
-            // });
+                showToast(`Pedido #${orderId} enviado com sucesso!`);
+
+                const fullMessage = encodeURIComponent(
+                    `Olá, gostaria de fazer o seguinte pedido (código *${orderId}*):\n\n` +
+                    cartItemsText +
+                    totalText +
+                    clientInfoText
+                );
+
+                // WhatsApp com o número da marmitaria
+                const whatsappNumber = '18981561535'; // Número de telefone da marmitaria
+                const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${fullMessage}`;
+
+                window.open(whatsappUrl, '_blank');
+
+                // Limpa o carrinho após o envio do pedido
+                cart.clear();
+                renderCart();
+                // Volta para a visualização do carrinho
+                document.querySelector('.cart-section').style.display = 'block';
+                checkoutFormSection.style.display = 'none';
+
+            } catch (error) {
+                console.error("Erro ao enviar pedido para o Firebase:", error);
+                showToast("Erro ao enviar pedido. Tente novamente.");
+            }
         }
         
+        /**
+         * Rastreia o status de um pedido usando o ID fornecido.
+         * Busca o status no Firebase e exibe na interface.
+         */
         function trackOrder() {
-            const orderId = orderIdInput.value.toUpperCase();
-            
-            // [FIREBASE] AQUI VOCÊ BUSCARIA O STATUS DO PEDIDO NO BANCO DE DADOS
-            // Exemplo: firebase.database().ref('orders/' + orderId).on('value', (snapshot) => {
-            //   const order = snapshot.val();
-            //   if (order) {
-            //     orderStatusDiv.innerText = `Status do Pedido ${orderId}: ${order.status}`;
-            //   } else {
-            //     orderStatusDiv.innerText = 'Pedido não encontrado.';
-            //   }
-            // });
-
-            // Simulação (remova após integrar com Firebase)
-            if (orders[orderId]) {
-                orderStatusDiv.innerText = `Status do Pedido ${orderId}: ${orders[orderId].status}`;
-            } else {
-                orderStatusDiv.innerText = 'Pedido não encontrado.';
+            const orderId = orderIdInput.value.trim().toUpperCase();
+            if (!orderId) {
+                orderStatusDiv.innerText = 'Por favor, digite um código de pedido.';
+                return;
             }
+
+            const orderRef = db.ref('orders/' + orderId);
+            
+            orderRef.once('value', (snapshot) => { // Usamos 'once' para buscar uma única vez
+                const order = snapshot.val();
+                if (order) {
+                    orderStatusDiv.innerText = `Status do Pedido ${orderId}: ${order.status}`;
+                    showToast(`Status atualizado para "${order.status}"!`);
+                } else {
+                    orderStatusDiv.innerText = 'Pedido não encontrado.';
+                    showToast('Pedido não encontrado.');
+                }
+            }, (error) => {
+                console.error("Erro ao buscar pedido no Firebase:", error);
+                orderStatusDiv.innerText = 'Erro ao buscar pedido. Tente novamente.';
+                showToast('Erro ao buscar pedido.');
+            });
         }
 
         // --- Inicialização ---
         document.addEventListener('DOMContentLoaded', () => {
             deliveryForm.addEventListener('submit', handleDeliveryFormSubmit);
 
-            // [FIREBASE] AQUI VOCÊ CARREGARIA OS DADOS DO CARDÁPIO DO FIREBASE
-            // Exemplo: firebase.database().ref('menu').on('value', (snapshot) => {
-            //   menuData = snapshot.val();
-            //   renderMenu();
-            // });
+            // Carrega os dados do cardápio do Firebase em tempo real
+            db.ref('menu').on('value', (snapshot) => {
+                loadingMarmitas.style.display = 'none'; // Esconde o loading
+                loadingAdicionais.style.display = 'none'; // Esconde o loading
+
+                const data = snapshot.val();
+                if (data) {
+                    menuData = data; // Atualiza a variável global com os dados do Firebase
+                    renderMenu(); // Renderiza o menu com os dados atualizados
+                } else {
+                    marmitasList.innerHTML = '<p>Nenhum item disponível no cardápio de marmitas.</p>';
+                    adicionaisList.innerHTML = '<p>Nenhum adicional disponível.</p>';
+                }
+            }, (error) => {
+                console.error("Erro ao carregar cardápio do Firebase:", error);
+                loadingMarmitas.innerText = 'Erro ao carregar cardápio.';
+                loadingAdicionais.innerText = 'Erro ao carregar adicionais.';
+                showToast('Erro ao carregar cardápio.');
+            });
             
-            // Renderiza com os dados iniciais vazios para exibir o "Carregando..."
-            renderMenu();
-            renderCart();
+            renderCart(); // Renderiza o carrinho inicialmente (vazio ou com itens salvos se houver)
         });
     </script>
 </body>
-    </html>
+</html>
