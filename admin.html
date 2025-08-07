@@ -378,11 +378,11 @@
                     <label for="marmitaria-slogan-input">Slogan da Marmitaria</label>
                     <input type="text" id="marmitaria-slogan-input">
                 </div>
-                <!-- Logo agora é fixa, removido upload -->
                 <div class="form-group">
-                    <label>Logo Atual (Fixa)</label>
-                    <img src="http://googleusercontent.com/file_content/11" alt="Logo da Marmitaria" style="max-width: 100px; height: auto; border-radius: 50%; border: 2px solid var(--primary-color);">
-                    <p style="font-size: 0.8em; color: var(--light-text-color);">A logo é fixa e não pode ser alterada por aqui.</p>
+                    <label for="settings-logo-upload">Upload da Logo</label>
+                    <input type="file" id="settings-logo-upload" accept="image/*">
+                    <img id="settings-logo-preview" src="" alt="Pré-visualização da logo atual" style="max-width: 100px; height: auto; margin-top: 10px; border-radius: 50%; border: 2px solid var(--primary-color); display:none;">
+                    <button type="button" class="btn btn-info" id="btn-upload-logo" style="margin-top: 10px;">Upload Logo</button>
                 </div>
                 <div class="form-group">
                     <label for="logo-position-select">Posição da Logo no Site</label>
@@ -540,6 +540,7 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script> <!-- Firebase Storage SDK adicionado -->
 
     <script>
         // Firebase configuration
@@ -548,7 +549,7 @@
             authDomain: "aquilesplacarpro.firebaseapp.com",
             databaseURL: "https://aquilesplacarpro-default-rtdb.firebaseio.com",
             projectId: "aquilesplacarpro",
-            storageBucket: "aquilesplacarpro.firebasestorage.app", // Mantido mas não usado para upload
+            storageBucket: "aquilesplacarpro.firebasestorage.app",
             messagingSenderId: "922321609151",
             appId: "1:922321609151:web:ba51f5b21b322cf0a4c10a"
         };
@@ -556,6 +557,7 @@
         // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.database(); // Get a reference to the database service
+        const storage = firebase.storage(); // Firebase Storage SDK inicializado
 
         // --- Variáveis de Estado ---
         let menuData = { marmitas: {}, adicionais: {} }; // Usará objetos para mapear por ID do Firebase
@@ -572,6 +574,9 @@
         const settingsForm = document.getElementById('settings-form');
         const marmitariaNameInput = document.getElementById('marmitaria-name-input');
         const marmitariaSloganInput = document.getElementById('marmitaria-slogan-input');
+        const settingsLogoUpload = document.getElementById('settings-logo-upload'); // Campo de upload da logo
+        const settingsLogoPreview = document.getElementById('settings-logo-preview'); // Pré-visualização da logo
+        const btnUploadLogo = document.getElementById('btn-upload-logo'); // Botão de upload da logo
         const logoPositionSelect = document.getElementById('logo-position-select');
         const dailyColorsInputsDiv = document.getElementById('daily-colors-inputs');
         const currentDateTime = document.getElementById('current-datetime');
@@ -719,12 +724,22 @@
         function fillSettingsForm() {
             if (globalSettings.name) marmitariaNameInput.value = globalSettings.name;
             if (globalSettings.slogan) marmitariaSloganInput.value = globalSettings.slogan;
+            
+            // Preenche a pré-visualização da logo
+            if (globalSettings.logoUrl) {
+                settingsLogoPreview.src = globalSettings.logoUrl;
+                settingsLogoPreview.style.display = 'block';
+            } else {
+                settingsLogoPreview.style.display = 'none';
+                settingsLogoPreview.src = '';
+            }
+
             if (globalSettings.logoPosition) logoPositionSelect.value = globalSettings.logoPosition;
             renderDailyColorsInputs(); // Renderiza os inputs de cor com os valores atuais
         }
 
         /**
-         * Lida com o envio do formulário de configurações globais.
+         * Lida com o envio do formulário de configurações globais (exceto logo).
          * Salva as configurações no Firebase.
          * @param {Event} event - O evento de envio do formulário.
          */
@@ -746,11 +761,9 @@
                 }
             });
 
-            // Logo agora é fixa, não há upload
-            newSettings.logoUrl = 'http://googleusercontent.com/file_content/11'; // URL fixa da logo
-
             try {
-                await db.ref('settings').set(newSettings);
+                // Atualiza apenas os campos do formulário de configurações, a logo é separada
+                await db.ref('settings').update(newSettings);
                 showToast("Configurações salvas com sucesso!");
             } catch (error) {
                 console.error("Erro ao salvar configurações no Firebase:", error);
@@ -759,12 +772,49 @@
         }
 
         /**
+         * Lida com o upload da logo para o Firebase Storage.
+         * Salva a URL da logo no Realtime Database.
+         */
+        async function handleLogoUpload() {
+            const file = settingsLogoUpload.files[0];
+            if (!file) {
+                showToast("Por favor, selecione um arquivo para upload.");
+                return;
+            }
+
+            const confirmed = await showConfirmationModal("Tem certeza que deseja fazer upload desta imagem como a nova logo? Isso substituirá a logo atual.");
+            if (!confirmed) {
+                return;
+            }
+
+            // Cria uma referência para o arquivo no Storage. Usaremos um nome fixo para a logo principal.
+            const storageRef = storage.ref('logos/marmitaria_logo.png'); // Nome fixo para a logo
+
+            try {
+                showToast("Fazendo upload da logo...");
+                const snapshot = await storageRef.put(file);
+                const downloadURL = await snapshot.ref.getDownloadURL();
+
+                // Atualiza a URL da logo no Realtime Database
+                await db.ref('settings').update({ logoUrl: downloadURL });
+
+                showToast("Logo atualizada com sucesso!");
+                settingsLogoPreview.src = downloadURL;
+                settingsLogoPreview.style.display = 'block';
+            } catch (error) {
+                console.error("Erro ao fazer upload da logo:", error);
+                showToast("Erro ao fazer upload da logo. Tente novamente.");
+            }
+        }
+
+
+        /**
          * Renderiza os itens do cardápio na lista de edição.
          * Busca os dados de `menuData` (populados pelo Firebase) e os exibe.
          */
         function renderMenuItems() {
             menuItemsList.innerHTML = ''; // Limpa a lista antes de renderizar
-            loadingMenuItems.style.display = 'none'; // Esconde o loading
+            document.getElementById('loading-menu-items').style.display = 'none'; // Esconde o loading
 
             let hasItems = false;
 
@@ -1109,6 +1159,7 @@
             menuForm.addEventListener('submit', handleMenuFormSubmit);
             btnClearForm.addEventListener('click', clearForm);
             settingsForm.addEventListener('submit', handleSettingsFormSubmit);
+            btnUploadLogo.addEventListener('click', handleLogoUpload); // Listener para o botão de upload da logo
 
             // Adiciona listeners para os botões da modal de detalhes do pedido
             acceptOrderBtn.addEventListener('click', acceptOrder);
@@ -1153,13 +1204,13 @@
             
             // Listener para o cardápio (menu)
             db.ref('menu').on('value', (snapshot) => {
-                loadingMenuItems.style.display = 'none'; // Esconde a mensagem de carregamento
+                document.getElementById('loading-menu-items').style.display = 'none'; // Esconde a mensagem de carregamento
                 const data = snapshot.val();
                 menuData = data || { marmitas: {}, adicionais: {} }; // Garante que seja um objeto
                 renderMenuItems();
             }, (error) => {
                 console.error("Erro ao carregar cardápio do Firebase:", error);
-                loadingMenuItems.innerText = 'Erro ao carregar cardápio.';
+                document.getElementById('loading-menu-items').innerText = 'Erro ao carregar cardápio.';
                 showToast('Erro ao carregar cardápio.');
             });
 
