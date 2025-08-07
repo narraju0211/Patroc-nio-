@@ -197,7 +197,7 @@
         .btn-add:hover {
             background-color: #218838;
         }
-        
+
         /* Notificação de sucesso (Toast) */
         .toast {
             visibility: hidden;
@@ -454,10 +454,7 @@
             apiKey: "AIzaSyAFp_iujrtqjiTU5yq2yNSBIpwgjQZZyns",
             authDomain: "aquilesplacarpro.firebaseapp.com",
             databaseURL: "https://aquilesplacarpro-default-rtdb.firebaseio.com",
-            projectId: "aquilesplacarpro",
-            storageBucket: "aquilesplacarpro.firebasestorage.app",
-            messagingSenderId: "922321609151",
-            appId: "1:922321609151:web:ba51f5b21b322cf0a4c10a"
+            projectId: "aquilesplacarpro"
         };
 
         // Initialize Firebase
@@ -504,224 +501,158 @@
             const year = now.getFullYear();
             const hours = now.getHours().toString().padStart(2, '0');
             const minutes = now.getMinutes().toString().padStart(2, '0');
-            currentDateTime.innerText = `Bom dia! Hoje é ${dayOfWeek}, ${dayOfMonth} de ${month} de ${year} às ${hours}:${minutes}.`;
+            currentDateTime.innerText = `Hoje é ${dayOfWeek}, ${dayOfMonth} de ${month} de ${year} às ${hours}:${minutes}.`;
         }
-
-        function applyGlobalSettings() {
-            if (globalSettings.name) {
-                marmitariaName.innerText = globalSettings.name;
-            }
-            if (globalSettings.slogan) {
-                marmitariaSlogan.innerText = globalSettings.slogan;
-            }
-            mainHeader.classList.remove('header-align-left', 'header-align-center', 'header-align-right');
-            if (globalSettings.logoPosition) {
-                mainHeader.classList.add(`header-align-${globalSettings.logoPosition}`);
-            } else {
-                mainHeader.classList.add('header-align-center');
-            }
-            const today = new Date().getDay();
-            const currentDayNameKey = daysOfWeekKeys[today];
-            if (globalSettings.dailyColors && globalSettings.dailyColors[currentDayNameKey]) {
-                document.documentElement.style.setProperty('--primary-color', globalSettings.dailyColors[currentDayNameKey]);
-            } else {
-                document.documentElement.style.setProperty('--primary-color', '#e74c3c');
-            }
-        }
-
-        function findMenuItem(itemId) {
-            let item = null;
-            if (menuData.marmitas && typeof menuData.marmitas === 'object') {
-                item = Object.values(menuData.marmitas).find(m => m.id === itemId);
-            }
-            if (!item && menuData.adicionais && typeof menuData.adicionais === 'object') {
-                item = Object.values(menuData.adicionais).find(a => a.id === itemId);
-            }
-            return item;
-        }
-
+        
         function showToast(message) {
             toast.innerText = message;
             toast.className = "toast show";
             setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
-        // --- Funções de Lógica Principal ---
+        function applyGlobalSettings() {
+            if (globalSettings.name) marmitariaName.innerText = globalSettings.name;
+            if (globalSettings.slogan) marmitariaSlogan.innerText = globalSettings.slogan;
+            if (globalSettings.logoPosition) mainHeader.className = `header-align-${globalSettings.logoPosition}`;
+            if (globalSettings.dailyColors) {
+                const todayKey = daysOfWeekKeys[new Date().getDay()];
+                const todayColor = globalSettings.dailyColors[todayKey] || '#e74c3c';
+                document.documentElement.style.setProperty('--primary-color', todayColor);
+            }
+        }
 
         function renderMenu() {
             marmitasList.innerHTML = '';
             adicionaisList.innerHTML = '';
 
-            function createMenuItemHTML(item, isMarmita = true) {
-                const descriptionHTML = isMarmita && item.description ? `<p>${item.description}</p>` : '';
-                const imageUrl = item.imageUrl || 'https://placehold.co/80x80/e74c3c/ffffff?text=Item';
-                return `
-                    <div class="menu-item" data-id="${item.id}">
-                        <img src="${imageUrl}" alt="${item.name}" class="item-image" onerror="this.onerror=null;this.src='https://placehold.co/80x80/e74c3c/ffffff?text=Item';">
-                        <div class="item-details">
-                            <h3>${item.name}</h3>
-                            ${descriptionHTML}
-                        </div>
-                        <div class="item-actions">
-                            <span class="item-price">R$ ${item.price ? item.price.toFixed(2).replace('.', ',') : '0,00'}</span>
-                            <button class="btn-add" onclick="addToCart('${item.id}')">Adicionar</button>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            if (menuData.marmitas && Object.keys(menuData.marmitas).length > 0) {
-                Object.values(menuData.marmitas).forEach(item => {
-                    marmitasList.innerHTML += createMenuItemHTML(item);
-                });
-            } else {
-                marmitasList.innerHTML = '<p>Nenhum item disponível no cardápio de marmitas hoje.</p>';
-            }
-
-            if (menuData.adicionais && Object.keys(menuData.adicionais).length > 0) {
-                Object.values(menuData.adicionais).forEach(item => {
-                    adicionaisList.innerHTML += createMenuItemHTML(item, false);
-                });
-            } else {
-                adicionaisList.innerHTML = '<p>Nenhum adicional disponível hoje.</p>';
-            }
+            const renderItems = (items, listElement) => {
+                if (items && Object.keys(items).length > 0) {
+                    Object.entries(items).forEach(([id, item]) => {
+                        const itemDiv = document.createElement('div');
+                        itemDiv.className = 'menu-item';
+                        let imageHtml = item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.name}" class="item-image">` : '';
+                        itemDiv.innerHTML = `
+                            ${imageHtml}
+                            <div class="item-details">
+                                <h3>${item.name}</h3>
+                                <p>${item.description || ''}</p>
+                            </div>
+                            <div class="item-actions">
+                                <span class="item-price">R$ ${item.price.toFixed(2).replace('.', ',')}</span>
+                                <button class="btn-add" onclick="addToCart('${id}', '${item.name.replace(/'/g, "\\'")}', ${item.price})">Adicionar</button>
+                            </div>
+                        `;
+                        listElement.appendChild(itemDiv);
+                    });
+                } else {
+                    listElement.innerHTML = '<p>Nenhum item disponível.</p>';
+                }
+            };
+            renderItems(menuData.marmitas, marmitasList);
+            renderItems(menuData.adicionais, adicionaisList);
         }
 
-        function renderCart() {
+        function addToCart(id, name, price) {
+            const key = `${id}|${name}`;
+            const existingItem = cart.get(key);
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.set(key, { id, name, price, quantity: 1 });
+            }
+            updateCart();
+            showToast(`"${name}" adicionado ao carrinho!`);
+        }
+
+        function removeFromCart(key) {
+            cart.delete(key);
+            updateCart();
+        }
+
+        function updateCart() {
             cartList.innerHTML = '';
             let total = 0;
 
-            if (cart.size === 0) {
+            if (cart.size > 0) {
+                emptyCartMessage.style.display = 'none';
+                cart.forEach((item, key) => {
+                    const itemTotal = item.price * item.quantity;
+                    total += itemTotal;
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'cart-item';
+                    itemDiv.innerHTML = `
+                        <span class="cart-item-name">${item.quantity}x ${item.name}</span>
+                        <span>R$ ${itemTotal.toFixed(2).replace('.', ',')}</span>
+                        <span class="cart-item-remove" onclick="removeFromCart('${key}')">Remover</span>
+                    `;
+                    cartList.appendChild(itemDiv);
+                });
+                cartSummary.style.display = 'block';
+            } else {
                 emptyCartMessage.style.display = 'block';
                 cartSummary.style.display = 'none';
-            } else {
-                emptyCartMessage.style.display = 'none';
-                cartSummary.style.display = 'block';
-                cart.forEach((quantity, itemId) => {
-                    const item = findMenuItem(itemId);
-                    if (item) {
-                        const subtotal = item.price * quantity;
-                        total += subtotal;
-                        const itemHtml = `
-                            <div class="cart-item">
-                                <span class="cart-item-name">${item.name} (x${quantity})</span>
-                                <span>R$ ${subtotal.toFixed(2).replace('.', ',')}</span>
-                                <span class="cart-item-remove" onclick="removeFromCart('${item.id}')">Remover</span>
-                            </div>
-                        `;
-                        cartList.innerHTML += itemHtml;
-                    }
-                });
             }
-
             cartTotalSpan.innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
         }
 
-        function addToCart(itemId) {
-            const item = findMenuItem(itemId);
-            if (item) {
-                cart.set(itemId, (cart.get(itemId) || 0) + 1);
-                renderCart();
-                showToast(`"${item.name}" adicionado(a)!`);
-            }
-        }
-
-        function removeFromCart(itemId) {
-            const quantity = cart.get(itemId);
-            if (quantity > 1) {
-                cart.set(itemId, quantity - 1);
-            } else {
-                cart.delete(itemId);
-            }
-            renderCart();
-        }
-
         function showCheckout() {
-            document.querySelector('.cart-section').style.display = 'none';
-            checkoutFormSection.style.display = 'block';
-        }
-
-        async function handleDeliveryFormSubmit(event) {
-            event.preventDefault();
-            const formData = new FormData(deliveryForm);
-            
-            const clientName = formData.get('name');
-            const clientAddress = formData.get('address');
-            const clientPhone = formData.get('phone').replace(/\D/g, '');
-            const paymentMethod = formData.get('payment');
-
-            let cartItemsText = '--- Pedido ---\n';
-            let total = 0;
-            const itemsForFirebase = [];
-
             if (cart.size === 0) {
-                showToast("Seu carrinho está vazio. Adicione itens antes de enviar o pedido.");
+                showToast("Seu carrinho está vazio!");
                 return;
             }
+            checkoutFormSection.style.display = 'block';
+            window.scrollTo({ top: checkoutFormSection.offsetTop, behavior: 'smooth' });
+        }
+        
+        async function handleDeliveryFormSubmit(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(deliveryForm);
+            const order = {
+                id: db.ref('orders').push().key,
+                clientName: formData.get('name'),
+                clientAddress: formData.get('address'),
+                clientPhone: formData.get('phone'),
+                paymentMethod: formData.get('payment'),
+                items: [],
+                total: 0,
+                status: 'Pendente',
+                timestamp: Date.now()
+            };
 
-            cart.forEach((quantity, itemId) => {
-                const item = findMenuItem(itemId);
-                if (item) {
-                    const subtotal = item.price * quantity;
-                    total += subtotal;
-                    cartItemsText += `${quantity}x ${item.name} (R$ ${subtotal.toFixed(2).replace('.', ',')})\n`;
-                    itemsForFirebase.push({
-                        id: itemId,
-                        name: item.name,
-                        price: item.price,
-                        quantity: quantity
-                    });
-                }
+            let whatsappMessage = `*Novo Pedido Online - #${order.id.substring(0, 6)}*\n\n`;
+            let total = 0;
+
+            order.items = Array.from(cart.values()).map(item => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+                whatsappMessage += `* ${item.quantity}x ${item.name} (R$ ${item.price.toFixed(2).replace('.', ',')})\n`;
+                return {
+                    id: item.id,
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity
+                };
             });
-
-            const totalText = `\n*Total do Pedido:* R$ ${total.toFixed(2).replace('.', ',')}`;
-            const clientInfoText = `\n--- Dados para Entrega ---\n*Nome:* ${clientName}\n*Endereço:* ${clientAddress}\n*Telefone:* ${clientPhone}\n*Forma de Pagamento:* ${paymentMethod}`;
+            order.total = total;
+            whatsappMessage += `\n*Total:* R$ ${total.toFixed(2).replace('.', ',')}\n\n`;
+            whatsappMessage += `*Dados do Cliente:*\n`;
+            whatsappMessage += `*Nome:* ${order.clientName}\n`;
+            whatsappMessage += `*Endereço:* ${order.clientAddress}\n`;
+            whatsappMessage += `*Telefone:* ${order.clientPhone}\n`;
+            whatsappMessage += `*Pagamento:* ${order.paymentMethod}\n`;
 
             try {
-                const newOrderRef = db.ref('orders').push();
-                const orderId = newOrderRef.key;
+                // Salva o pedido no Realtime Database
+                await db.ref('orders/' + order.id).set(order);
 
-                await newOrderRef.set({
-                    id: orderId,
-                    clientName,
-                    clientAddress,
-                    clientPhone,
-                    paymentMethod,
-                    items: itemsForFirebase,
-                    total,
-                    status: 'Pendente',
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
-                });
+                // Abre o WhatsApp com a mensagem
+                const whatsappUrl = `https://api.whatsapp.com/send?phone=5518981561535&text=${encodeURIComponent(whatsappMessage)}`;
+                window.open(whatsappUrl, '_blank');
 
-                showToast(`Pedido #${orderId} enviado com sucesso!`);
-                
-                const fullMessage = encodeURIComponent(
-                    `Olá, gostaria de fazer o seguinte pedido (código *${orderId}*):\n\n` +
-                    cartItemsText +
-                    totalText +
-                    clientInfoText
-                );
-
-                const whatsappNumber = '18981561535';
-                const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${fullMessage}`;
-
-                try {
-                    const newWindow = window.open(whatsappUrl, '_blank');
-                    if (!newWindow || newWindow.closed || typeof newWindow.focus !== 'function') {
-                        showToast("Pedido salvo, mas não foi possível abrir o WhatsApp. Envie a mensagem manualmente.");
-                    } else {
-                        newWindow.focus();
-                    }
-                } catch (whatsappError) {
-                    console.error("Erro ao tentar abrir WhatsApp:", whatsappError);
-                    showToast("Pedido salvo, mas não foi possível abrir o WhatsApp. Por favor, envie a mensagem manualmente.");
-                }
-
-                // Limpa o carrinho e o formulário
+                showToast("Pedido enviado com sucesso!");
                 cart.clear();
-                renderCart();
-                deliveryForm.reset();
-                document.querySelector('.cart-section').style.display = 'block';
+                updateCart();
                 checkoutFormSection.style.display = 'none';
 
             } catch (error) {
@@ -773,4 +704,4 @@
         });
     </script>
 </body>
-                        </html>
+                </html>
