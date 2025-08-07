@@ -362,9 +362,9 @@
 
     <div id="toast" class="toast"></div>
 
-    <header id="main-header">
+    <header id="main-header" class="header-align-center">
         <div class="logo-container">
-            <img id="logo-preview" src="https://firebasestorage.googleapis.com/v0/b/aquilesplacarpro.appspot.com/o/logo.jpeg?alt=media&token=81c96a79-d586-444a-953e-001c3600c0a9" alt="Logo da Marmitaria">
+            <img id="logo-preview" src="" alt="Logo da Marmitaria">
             <h1 id="marmitaria-name">Denny Martins</h1>
         </div>
         <div>
@@ -387,6 +387,20 @@
                     <h2>Adicionais</h2>
                     <div id="adicionais-list">
                         <p id="loading-adicionais">Carregando adicionais...</p>
+                    </div>
+                </div>
+
+                <div class="menu-section">
+                    <h2>Bebidas</h2>
+                    <div id="bebidas-list">
+                        <p id="loading-bebidas">Carregando bebidas...</p>
+                    </div>
+                </div>
+
+                <div class="menu-section">
+                    <h2>Doces</h2>
+                    <div id="doces-list">
+                        <p id="loading-doces">Carregando doces...</p>
                     </div>
                 </div>
             </main>
@@ -430,7 +444,7 @@
                                 <option value="PIX">PIX</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn-checkout">Enviar Pedido por WhatsApp</button>
+                        <button type="submit" class="btn-checkout">Enviar Pedido</button>
                     </form>
                 </div>
 
@@ -462,13 +476,16 @@
         const db = firebase.database();
 
         // --- Variáveis de Estado ---
-        let menuData = { marmitas: {}, adicionais: {} };
+        const menuCategories = ['marmitas', 'adicionais', 'bebidas', 'doces'];
+        let menuData = {};
         let cart = new Map();
         let globalSettings = {};
 
         // --- Elementos do DOM ---
         const marmitasList = document.getElementById('marmitas-list');
         const adicionaisList = document.getElementById('adicionais-list');
+        const bebidasList = document.getElementById('bebidas-list');
+        const docesList = document.getElementById('doces-list');
         const cartList = document.getElementById('cart-list');
         const emptyCartMessage = document.getElementById('empty-cart-message');
         const cartSummary = document.getElementById('cart-summary');
@@ -480,6 +497,8 @@
         const toast = document.getElementById('toast');
         const loadingMarmitas = document.getElementById('loading-marmitas');
         const loadingAdicionais = document.getElementById('loading-adicionais');
+        const loadingBebidas = document.getElementById('loading-bebidas');
+        const loadingDoces = document.getElementById('loading-doces');
 
         const mainHeader = document.getElementById('main-header');
         const logoPreview = document.getElementById('logo-preview');
@@ -514,6 +533,13 @@
             if (globalSettings.name) marmitariaName.innerText = globalSettings.name;
             if (globalSettings.slogan) marmitariaSlogan.innerText = globalSettings.slogan;
             if (globalSettings.logoPosition) mainHeader.className = `header-align-${globalSettings.logoPosition}`;
+            if (globalSettings.logoUrl) {
+                logoPreview.src = globalSettings.logoUrl;
+                logoPreview.style.display = 'block';
+            } else {
+                logoPreview.src = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='; // Imagem transparente
+                logoPreview.style.display = 'none';
+            }
             if (globalSettings.dailyColors) {
                 const todayKey = daysOfWeekKeys[new Date().getDay()];
                 const todayColor = globalSettings.dailyColors[todayKey] || '#e74c3c';
@@ -524,6 +550,8 @@
         function renderMenu() {
             marmitasList.innerHTML = '';
             adicionaisList.innerHTML = '';
+            bebidasList.innerHTML = '';
+            docesList.innerHTML = '';
 
             const renderItems = (items, listElement) => {
                 if (items && Object.keys(items).length > 0) {
@@ -550,6 +578,8 @@
             };
             renderItems(menuData.marmitas, marmitasList);
             renderItems(menuData.adicionais, adicionaisList);
+            renderItems(menuData.bebidas, bebidasList);
+            renderItems(menuData.doces, docesList);
         }
 
         function addToCart(id, name, price) {
@@ -696,12 +726,14 @@
             });
 
             db.ref('menu').on('value', (snapshot) => {
-                menuData = snapshot.val() || { marmitas: {}, adicionais: {} };
+                menuData = snapshot.val() || {};
                 loadingMarmitas.style.display = 'none';
                 loadingAdicionais.style.display = 'none';
+                loadingBebidas.style.display = 'none';
+                loadingDoces.style.display = 'none';
                 renderMenu();
             });
         });
     </script>
 </body>
-                </html>
+    </html>
