@@ -616,7 +616,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
     <script>
         // Firebase configuration
@@ -624,17 +623,12 @@
             apiKey: "AIzaSyAFp_iujrtqjiTU5yq2yNSBIpwgjQZZyns",
             authDomain: "aquilesplacarpro.firebaseapp.com",
             databaseURL: "https://aquilesplacarpro-default-rtdb.firebaseio.com",
-            projectId: "aquilesplacarpro",
-            storageBucket: "aquilesplacarpro.firebasestorage.app",
-            messagingSenderId: "922321609151",
-            appId: "1:922321609151:web:ba51f5b21b322cf0a4c10a"
+            projectId: "aquilesplacarpro"
         };
 
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const auth = firebase.auth();
-        const storage = firebase.storage();
-        const storageRef = storage.ref();
 
         // --- Variáveis de Estado ---
         let menuData = { marmitas: {}, adicionais: {} };
@@ -866,26 +860,33 @@
                 name: document.getElementById('item-name').value,
                 description: document.getElementById('item-description').value,
                 price: parseFloat(document.getElementById('item-price').value),
-                imageUrl: '' // Inicializa com valor vazio
+                imageUrl: ''
             };
 
             const imageFile = itemImageInput.files[0];
-            const oldImageUrl = menuData[itemType] && menuData[itemType][itemId] ? menuData[itemType][itemId].imageUrl : null;
+            
+            if (imageFile) {
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    itemData.imageUrl = e.target.result;
+                    await saveMenuItem(itemId, itemType, itemData);
+                };
+                reader.onerror = function() {
+                    showToast("Erro ao ler o arquivo de imagem.");
+                };
+                reader.readAsDataURL(imageFile);
+            } else {
+                const oldImageUrl = menuData[itemType] && menuData[itemType][itemId] ? menuData[itemType][itemId].imageUrl : null;
+                itemData.imageUrl = oldImageUrl;
+                await saveMenuItem(itemId, itemType, itemData);
+            }
+        }
 
+        async function saveMenuItem(itemId, itemType, itemData) {
             try {
-                if (imageFile) {
-                    const imageName = `${itemType}/${itemId}_${imageFile.name}`;
-                    const uploadTask = storageRef.child(imageName).put(imageFile);
-                    await uploadTask;
-                    itemData.imageUrl = await storageRef.child(imageName).getDownloadURL();
-                } else if (oldImageUrl) {
-                    itemData.imageUrl = oldImageUrl;
-                }
-
                 await db.ref(`menu/${itemType}/${itemId}`).set(itemData);
                 showToast(`Item "${itemData.name}" salvo com sucesso!`);
                 clearMenuForm();
-
             } catch (error) {
                 console.error("Erro ao salvar item:", error);
                 showToast("Erro ao salvar item. Verifique o console.");
@@ -917,11 +918,6 @@
             const isConfirmed = await showConfirmationModal(`Tem certeza que deseja excluir o item "${item.name}"?`);
             if (isConfirmed) {
                 try {
-                    // Opcional: deletar a imagem do Storage
-                    if (item.imageUrl) {
-                        const imageRef = storage.refFromURL(item.imageUrl);
-                        await imageRef.delete().catch(error => console.error("Erro ao deletar imagem do Storage:", error));
-                    }
                     await db.ref(`menu/${itemType}/${itemId}`).remove();
                     showToast(`Item "${item.name}" excluído!`);
                 } catch (error) {
@@ -1109,4 +1105,4 @@
         }
     </script>
 </body>
-                            </html>
+                        </html>
