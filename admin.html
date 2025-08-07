@@ -151,6 +151,7 @@
         .status-select {
             padding: 5px;
             border-radius: 5px;
+            border: 1px solid #ddd;
         }
 
         /* Itens do Cardápio para Edição */
@@ -175,6 +176,84 @@
         .menu-item-edit-actions {
             display: flex;
             gap: 5px;
+        }
+
+        /* Modal de Confirmação */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            border-radius: 10px;
+            width: 80%; /* Could be more responsive */
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            color: var(--secondary-color);
+        }
+
+        .modal-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        /* Notificação Toast */
+        .toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1001; /* Above modal */
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 30px;
+            font-size: 1em;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .toast.show {
+            visibility: visible;
+            -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+        @-webkit-keyframes fadein {
+            from {bottom: 0; opacity: 0;}
+            to {bottom: 30px; opacity: 1;}
+        }
+        @keyframes fadein {
+            from {bottom: 0; opacity: 0;}
+            to {bottom: 30px; opacity: 1;}
+        }
+        @-webkit-keyframes fadeout {
+            from {bottom: 30px; opacity: 1;}
+            to {bottom: 0; opacity: 0;}
+        }
+        @keyframes fadeout {
+            from {bottom: 30px; opacity: 1;}
+            to {bottom: 0; opacity: 0;}
         }
     </style>
 </head>
@@ -221,7 +300,8 @@
             </form>
             
             <div class="menu-items-list" id="menu-items-list">
-                </div>
+                <p id="loading-menu-items">Carregando itens do cardápio...</p>
+            </div>
         </div>
 
         <div class="admin-section">
@@ -232,96 +312,214 @@
                         <tr>
                             <th>ID do Pedido</th>
                             <th>Cliente</th>
+                            <th>Total</th>
                             <th>Status</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody id="orders-table-body">
-                        </tbody>
+                        <p id="loading-orders">Carregando pedidos...</p>
+                    </tbody>
                 </table>
             </div>
         </div>
         
     </div>
 
+    <!-- Modal de Confirmação -->
+    <div id="confirmationModal" class="modal">
+        <div class="modal-content">
+            <h3>Confirmação</h3>
+            <p id="modalMessage"></p>
+            <div class="modal-actions">
+                <button class="btn btn-danger" id="modalConfirmBtn">Sim</button>
+                <button class="btn btn-info" id="modalCancelBtn">Não</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notificação Toast -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <script>
-        // --- SIMULAÇÃO DE DADOS (Substituir por Firebase) ---
-        let menuData = {
-            marmitas: [
-                { id: 1, name: 'Frango Grelhado com Legumes', description: 'Peito de frango suculento, arroz integral, feijão preto e legumes cozidos no vapor.', price: 25.00, image: 'https://via.placeholder.com/100/e74c3c/ffffff?text=Marmita+1' },
-            ],
-            adicionais: [
-                { id: 4, name: 'Coca-Cola Lata', price: 6.00, image: 'https://via.placeholder.com/100/f39c12/ffffff?text=Coke' },
-            ]
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAFp_iujrtqjiTU5yq2yNSBIpwgjQZZyns",
+            authDomain: "aquilesplacarpro.firebaseapp.com",
+            databaseURL: "https://aquilesplacarpro-default-rtdb.firebaseio.com",
+            projectId: "aquilesplacarpro",
+            storageBucket: "aquilesplacarpro.firebasestorage.app",
+            messagingSenderId: "922321609151",
+            appId: "1:922321609151:web:ba51f5b21b322cf0a4c10a"
         };
 
-        const orders = [
-            { id: 'DM123', clientName: 'João Silva', status: 'Pendente' },
-            { id: 'DM456', clientName: 'Maria Oliveira', status: 'Preparando' }
-        ];
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database(); // Get a reference to the database service
+
+        // --- Variáveis de Estado ---
+        let menuData = { marmitas: {}, adicionais: {} }; // Usará objetos para mapear por ID do Firebase
+        let orders = {}; // Usará objeto para mapear por ID do Firebase
 
         // --- Elementos do DOM ---
         const menuForm = document.getElementById('menu-form');
         const menuItemsList = document.getElementById('menu-items-list');
         const ordersTableBody = document.getElementById('orders-table-body');
         const btnClearForm = document.getElementById('btn-clear-form');
-        
-        // --- Funções do Admin ---
+        const loadingMenuItems = document.getElementById('loading-menu-items');
+        const loadingOrders = document.getElementById('loading-orders');
 
-        function renderMenuItems() {
-            menuItemsList.innerHTML = '';
-            
-            // Renderiza marmitas
-            menuData.marmitas.forEach(item => {
-                const itemDiv = createMenuItemDiv(item);
-                menuItemsList.appendChild(itemDiv);
-            });
-            
-            // Renderiza adicionais
-            menuData.adicionais.forEach(item => {
-                const itemDiv = createMenuItemDiv(item);
-                menuItemsList.appendChild(itemDiv);
+        // Modal elements
+        const confirmationModal = document.getElementById('confirmationModal');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+
+        // Toast element
+        const toast = document.getElementById('toast');
+
+        // --- Funções Auxiliares ---
+
+        /**
+         * Exibe uma mensagem de toast na parte inferior da tela.
+         * @param {string} message - A mensagem a ser exibida.
+         */
+        function showToast(message) {
+            toast.innerText = message;
+            toast.className = "toast show";
+            setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        /**
+         * Exibe uma modal de confirmação personalizada.
+         * @param {string} message - A mensagem a ser exibida na modal.
+         * @returns {Promise<boolean>} Uma promessa que resolve para true se confirmado, false se cancelado.
+         */
+        function showConfirmationModal(message) {
+            return new Promise((resolve) => {
+                modalMessage.innerText = message;
+                confirmationModal.style.display = 'flex'; // Use flex para centralizar
+
+                const confirmHandler = () => {
+                    confirmationModal.style.display = 'none';
+                    modalConfirmBtn.removeEventListener('click', confirmHandler);
+                    modalCancelBtn.removeEventListener('click', cancelHandler);
+                    resolve(true);
+                };
+
+                const cancelHandler = () => {
+                    confirmationModal.style.display = 'none';
+                    modalConfirmBtn.removeEventListener('click', confirmHandler);
+                    modalCancelBtn.removeEventListener('click', cancelHandler);
+                    resolve(false);
+                };
+
+                modalConfirmBtn.addEventListener('click', confirmHandler);
+                modalCancelBtn.addEventListener('click', cancelHandler);
             });
         }
 
-        function createMenuItemDiv(item) {
+        // --- Funções de Renderização e Lógica do Admin ---
+
+        /**
+         * Renderiza os itens do cardápio na lista de edição.
+         * Busca os dados de `menuData` (populados pelo Firebase) e os exibe.
+         */
+        function renderMenuItems() {
+            menuItemsList.innerHTML = ''; // Limpa a lista antes de renderizar
+            loadingMenuItems.style.display = 'none'; // Esconde o loading
+
+            let hasItems = false;
+
+            // Renderiza marmitas
+            if (menuData.marmitas && Object.keys(menuData.marmitas).length > 0) {
+                Object.entries(menuData.marmitas).forEach(([id, item]) => {
+                    const itemDiv = createMenuItemDiv(id, item, 'marmitas');
+                    menuItemsList.appendChild(itemDiv);
+                    hasItems = true;
+                });
+            }
+            
+            // Renderiza adicionais
+            if (menuData.adicionais && Object.keys(menuData.adicionais).length > 0) {
+                Object.entries(menuData.adicionais).forEach(([id, item]) => {
+                    const itemDiv = createMenuItemDiv(id, item, 'adicionais');
+                    menuItemsList.appendChild(itemDiv);
+                    hasItems = true;
+                });
+            }
+
+            if (!hasItems) {
+                menuItemsList.innerHTML = '<p>Nenhum item no cardápio.</p>';
+            }
+        }
+
+        /**
+         * Cria o elemento DIV para um item do cardápio na lista de edição.
+         * @param {string} itemId - O ID do item (chave do Firebase).
+         * @param {object} itemData - Os dados do item.
+         * @param {string} itemType - O tipo do item ('marmitas' ou 'adicionais').
+         * @returns {HTMLElement} O elemento DIV criado.
+         */
+        function createMenuItemDiv(itemId, itemData, itemType) {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'menu-item-edit';
             itemDiv.innerHTML = `
-                <span>${item.name} - R$${item.price.toFixed(2).replace('.', ',')}</span>
+                <span>${itemData.name} - R$${itemData.price ? itemData.price.toFixed(2).replace('.', ',') : '0,00'}</span>
                 <div class="menu-item-edit-actions">
-                    <button class="btn btn-info" onclick="editMenuItem(${item.id})">Editar</button>
-                    <button class="btn btn-danger" onclick="deleteMenuItem(${item.id})">Excluir</button>
+                    <button class="btn btn-info" onclick="editMenuItem('${itemId}', '${itemType}')">Editar</button>
+                    <button class="btn btn-danger" onclick="deleteMenuItem('${itemId}', '${itemType}')">Excluir</button>
                 </div>
             `;
             return itemDiv;
         }
 
+        /**
+         * Renderiza a tabela de pedidos.
+         * Busca os dados de `orders` (populados pelo Firebase) e os exibe.
+         */
         function renderOrders() {
-            ordersTableBody.innerHTML = '';
-            orders.forEach(order => {
-                const orderRow = document.createElement('tr');
-                orderRow.innerHTML = `
-                    <td>${order.id}</td>
-                    <td>${order.clientName}</td>
-                    <td>
-                        <select class="status-select" onchange="updateOrderStatus(${order.id}, this.value)">
-                            <option value="Pendente" ${order.status === 'Pendente' ? 'selected' : ''}>Pendente</option>
-                            <option value="Preparando" ${order.status === 'Preparando' ? 'selected' : ''}>Preparando</option>
-                            <option value="Saiu para Entrega" ${order.status === 'Saiu para Entrega' ? 'selected' : ''}>Saiu para Entrega</option>
-                            <option value="Entregue" ${order.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
-                            <option value="Cancelado" ${order.status === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
-                        </select>
-                    </td>
-                    <td class="order-actions">
-                        <button class="btn btn-info">Detalhes</button>
-                    </td>
-                `;
-                ordersTableBody.appendChild(orderRow);
-            });
+            ordersTableBody.innerHTML = ''; // Limpa a tabela antes de renderizar
+            loadingOrders.style.display = 'none'; // Esconde o loading
+
+            if (orders && Object.keys(orders).length > 0) {
+                Object.entries(orders).forEach(([orderId, order]) => {
+                    const orderRow = document.createElement('tr');
+                    const total = order.total ? order.total.toFixed(2).replace('.', ',') : '0,00';
+                    orderRow.innerHTML = `
+                        <td>${orderId}</td>
+                        <td>${order.clientName}</td>
+                        <td>R$ ${total}</td>
+                        <td>
+                            <select class="status-select" onchange="updateOrderStatus('${orderId}', this.value)">
+                                <option value="Pendente" ${order.status === 'Pendente' ? 'selected' : ''}>Pendente</option>
+                                <option value="Preparando" ${order.status === 'Preparando' ? 'selected' : ''}>Preparando</option>
+                                <option value="Saiu para Entrega" ${order.status === 'Saiu para Entrega' ? 'selected' : ''}>Saiu para Entrega</option>
+                                <option value="Entregue" ${order.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
+                                <option value="Cancelado" ${order.status === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
+                            </select>
+                        </td>
+                        <td class="order-actions">
+                            <button class="btn btn-info" onclick="showOrderDetails('${orderId}')">Detalhes</button>
+                        </td>
+                    `;
+                    ordersTableBody.appendChild(orderRow);
+                });
+            } else {
+                ordersTableBody.innerHTML = '<tr><td colspan="5">Nenhum pedido encontrado.</td></tr>';
+            }
         }
         
-        function handleMenuFormSubmit(event) {
+        /**
+         * Lida com o envio do formulário de cardápio (adicionar/editar item).
+         * Salva ou atualiza o item no Firebase.
+         * @param {Event} event - O evento de envio do formulário.
+         */
+        async function handleMenuFormSubmit(event) {
             event.preventDefault();
             const itemId = document.getElementById('menu-item-id').value;
             const itemName = document.getElementById('item-name').value;
@@ -330,53 +528,119 @@
             const itemType = document.getElementById('item-type').value;
             const itemImageUrl = document.getElementById('item-image-url').value;
 
-            const newItem = {
-                id: itemId || Date.now(), // Simula um ID único
+            const itemData = {
                 name: itemName,
                 description: itemDescription,
                 price: itemPrice,
                 image: itemImageUrl
             };
             
-            // [FIREBASE] AQUI VOCÊ ENVIARIA OS DADOS PARA O FIREBASE
-            // Exemplo: firebase.database().ref('menu/' + itemType + '/' + newItem.id).set(newItem);
-
-            alert(`Item "${newItem.name}" salvo com sucesso! (SIMULAÇÃO)`);
-            clearForm();
-            renderMenuItems(); // Atualiza a lista na tela
+            try {
+                if (itemId) {
+                    // Atualiza item existente
+                    await db.ref(`menu/${itemType}/${itemId}`).update(itemData);
+                    showToast(`Item "${itemName}" atualizado com sucesso!`);
+                } else {
+                    // Adiciona novo item
+                    await db.ref(`menu/${itemType}`).push(itemData);
+                    showToast(`Item "${itemName}" adicionado com sucesso!`);
+                }
+                clearForm();
+            } catch (error) {
+                console.error("Erro ao salvar item no Firebase:", error);
+                showToast("Erro ao salvar item. Tente novamente.");
+            }
         }
         
-        function editMenuItem(itemId) {
-            // [FIREBASE] AQUI VOCÊ BUSCARIA O ITEM NO BANCO DE DADOS
-            const allItems = [...menuData.marmitas, ...menuData.adicionais];
-            const itemToEdit = allItems.find(item => item.id == itemId);
+        /**
+         * Preenche o formulário com os dados de um item para edição.
+         * @param {string} itemId - O ID do item (chave do Firebase).
+         * @param {string} itemType - O tipo do item ('marmitas' ou 'adicionais').
+         */
+        function editMenuItem(itemId, itemType) {
+            const itemToEdit = menuData[itemType] ? menuData[itemType][itemId] : null;
 
             if (itemToEdit) {
-                document.getElementById('menu-item-id').value = itemToEdit.id;
+                document.getElementById('menu-item-id').value = itemId;
                 document.getElementById('item-name').value = itemToEdit.name;
                 document.getElementById('item-description').value = itemToEdit.description;
                 document.getElementById('item-price').value = itemToEdit.price;
-                // [FIREBASE] Você precisaria de um input para o tipo aqui
-                document.getElementById('item-image-url').value = itemToEdit.image;
+                document.getElementById('item-type').value = itemType; // Define o tipo correto
+                document.getElementById('item-image-url').value = itemToEdit.image || '';
+                showToast(`Editando item: ${itemToEdit.name}`);
+            } else {
+                showToast('Item não encontrado para edição.');
             }
         }
 
-        function deleteMenuItem(itemId) {
-            if (confirm("Tem certeza que deseja excluir este item?")) {
-                // [FIREBASE] AQUI VOCÊ EXCLUIRIA O ITEM DO BANCO DE DADOS
-                alert("Item excluído! (SIMULAÇÃO)");
-                renderMenuItems(); // Atualiza a lista na tela
+        /**
+         * Exclui um item do cardápio do Firebase.
+         * @param {string} itemId - O ID do item (chave do Firebase).
+         * @param {string} itemType - O tipo do item ('marmitas' ou 'adicionais').
+         */
+        async function deleteMenuItem(itemId, itemType) {
+            const confirmed = await showConfirmationModal("Tem certeza que deseja excluir este item?");
+            if (confirmed) {
+                try {
+                    await db.ref(`menu/${itemType}/${itemId}`).remove();
+                    showToast("Item excluído com sucesso!");
+                } catch (error) {
+                    console.error("Erro ao excluir item do Firebase:", error);
+                    showToast("Erro ao excluir item. Tente novamente.");
+                }
             }
         }
 
-        function updateOrderStatus(orderId, newStatus) {
-            // [FIREBASE] AQUI VOCÊ ATUALIZARIA O STATUS DO PEDIDO NO BANCO DE DADOS
-            alert(`Status do pedido ${orderId} atualizado para "${newStatus}"! (SIMULAÇÃO)`);
+        /**
+         * Atualiza o status de um pedido no Firebase.
+         * @param {string} orderId - O ID do pedido (chave do Firebase).
+         * @param {string} newStatus - O novo status do pedido.
+         */
+        async function updateOrderStatus(orderId, newStatus) {
+            try {
+                await db.ref(`orders/${orderId}`).update({ status: newStatus });
+                showToast(`Status do pedido ${orderId} atualizado para "${newStatus}"!`);
+            } catch (error) {
+                console.error("Erro ao atualizar status do pedido no Firebase:", error);
+                showToast("Erro ao atualizar status do pedido. Tente novamente.");
+            }
         }
 
+        /**
+         * Exibe os detalhes de um pedido em uma modal ou console (para simplificar).
+         * @param {string} orderId - O ID do pedido.
+         */
+        function showOrderDetails(orderId) {
+            const order = orders[orderId];
+            if (order) {
+                let details = `Detalhes do Pedido #${orderId}:\n`;
+                details += `Cliente: ${order.clientName}\n`;
+                details += `Endereço: ${order.clientAddress}\n`;
+                details += `Telefone: ${order.clientPhone}\n`;
+                details += `Pagamento: ${order.paymentMethod}\n`;
+                details += `Total: R$ ${order.total ? order.total.toFixed(2).replace('.', ',') : '0,00'}\n`;
+                details += `Status: ${order.status}\n\n`;
+                details += 'Itens:\n';
+                if (order.items && Array.isArray(order.items)) {
+                    order.items.forEach(item => {
+                        details += `- ${item.quantity}x ${item.name} (R$ ${item.price ? item.price.toFixed(2).replace('.', ',') : '0,00'})\n`;
+                    });
+                } else {
+                    details += 'Nenhum item detalhado disponível.\n';
+                }
+                showConfirmationModal(details); // Reutiliza a modal para exibir detalhes
+            } else {
+                showToast('Detalhes do pedido não encontrados.');
+            }
+        }
+
+        /**
+         * Limpa o formulário de cardápio.
+         */
         function clearForm() {
             menuForm.reset();
-            document.getElementById('menu-item-id').value = '';
+            document.getElementById('menu-item-id').value = ''; // Limpa o ID oculto
+            showToast("Formulário limpo.");
         }
 
         // --- Inicialização ---
@@ -384,16 +648,30 @@
             menuForm.addEventListener('submit', handleMenuFormSubmit);
             btnClearForm.addEventListener('click', clearForm);
             
-            renderMenuItems();
-            renderOrders();
-            
-            // [FIREBASE] AQUI VOCÊ ADICIONARIA O CÓDIGO DE ESCUTA DO FIREBASE
-            // Exemplo: firebase.database().ref('menu').on('value', (snapshot) => {
-            //   menuData = snapshot.val();
-            //   renderMenuItems();
-            // });
-            // E faria o mesmo para os pedidos
+            // Listener para o cardápio (menu)
+            db.ref('menu').on('value', (snapshot) => {
+                loadingMenuItems.style.display = 'none'; // Esconde a mensagem de carregamento
+                const data = snapshot.val();
+                menuData = data || { marmitas: {}, adicionais: {} }; // Garante que seja um objeto
+                renderMenuItems();
+            }, (error) => {
+                console.error("Erro ao carregar cardápio do Firebase:", error);
+                loadingMenuItems.innerText = 'Erro ao carregar cardápio.';
+                showToast('Erro ao carregar cardápio.');
+            });
+
+            // Listener para os pedidos
+            db.ref('orders').on('value', (snapshot) => {
+                loadingOrders.style.display = 'none'; // Esconde a mensagem de carregamento
+                const data = snapshot.val();
+                orders = data || {}; // Garante que seja um objeto
+                renderOrders();
+            }, (error) => {
+                console.error("Erro ao carregar pedidos do Firebase:", error);
+                loadingOrders.innerText = 'Erro ao carregar pedidos.';
+                showToast('Erro ao carregar pedidos.');
+            });
         });
     </script>
 </body>
-                                                      </html>
+</html>
