@@ -62,6 +62,12 @@
             margin-top: 10px;
         }
 
+        .header-info {
+            font-size: 0.9em;
+            color: var(--light-text-color);
+            margin-top: 10px;
+        }
+
         /* Seções do Painel */
         .admin-section {
             background-color: var(--card-background);
@@ -257,13 +263,31 @@
         }
 
         /* Estilo para a pré-visualização da imagem */
-        #current-image-preview {
+        #current-image-preview, #settings-logo-preview {
             max-width: 100px;
             max-height: 100px;
             margin-top: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
             display: block; /* Garante que a imagem ocupe sua própria linha */
+        }
+
+        /* Estilos para os color pickers */
+        .color-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+        .color-input-group input[type="color"] {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border: none;
+            cursor: pointer;
+        }
+        .color-input-group input[type="text"] {
+            flex-grow: 1;
         }
     </style>
 </head>
@@ -272,9 +296,46 @@
     <header>
         <h1>Painel de Controle</h1>
         <p>Gerencie seu negócio Denny Martins Marmitaria</p>
+        <p class="header-info" id="current-datetime"></p>
     </header>
 
     <div class="container">
+
+        <div class="admin-section">
+            <h2>Configurações Globais</h2>
+            <form id="settings-form">
+                <div class="form-group">
+                    <label for="marmitaria-name-input">Nome da Marmitaria</label>
+                    <input type="text" id="marmitaria-name-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="marmitaria-slogan-input">Slogan da Marmitaria</label>
+                    <input type="text" id="marmitaria-slogan-input">
+                </div>
+                <div class="form-group">
+                    <label for="settings-logo-upload">Upload da Logo</label>
+                    <input type="file" id="settings-logo-upload" accept="image/*">
+                    <img id="settings-logo-preview" src="" alt="Pré-visualização da logo atual" style="display:none;">
+                </div>
+                <div class="form-group">
+                    <label for="logo-position-select">Posição da Logo no Site</label>
+                    <select id="logo-position-select">
+                        <option value="left">Esquerda</option>
+                        <option value="center">Centro</option>
+                        <option value="right">Direita</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Cores para cada Dia da Semana</label>
+                    <div id="daily-colors-inputs">
+                        <!-- Inputs de cor serão gerados aqui -->
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="btn-save-settings">Salvar Configurações</button>
+                </div>
+            </form>
+        </div>
 
         <div class="admin-section">
             <h2>Gerenciar Cardápio</h2>
@@ -325,6 +386,7 @@
                             <th>Cliente</th>
                             <th>Total</th>
                             <th>Status</th>
+                            <th>Data/Hora</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
@@ -377,6 +439,7 @@
         // --- Variáveis de Estado ---
         let menuData = { marmitas: {}, adicionais: {} }; // Usará objetos para mapear por ID do Firebase
         let orders = {}; // Usará objeto para mapear por ID do Firebase
+        let globalSettings = {}; // Para armazenar as configurações da marmitaria
 
         // --- Elementos do DOM ---
         const menuForm = document.getElementById('menu-form');
@@ -388,6 +451,17 @@
         const itemImageUpload = document.getElementById('item-image-upload');
         const currentImagePreview = document.getElementById('current-image-preview');
 
+        // Settings form elements
+        const settingsForm = document.getElementById('settings-form');
+        const marmitariaNameInput = document.getElementById('marmitaria-name-input');
+        const marmitariaSloganInput = document.getElementById('marmitaria-slogan-input');
+        const settingsLogoUpload = document.getElementById('settings-logo-upload');
+        const settingsLogoPreview = document.getElementById('settings-logo-preview');
+        const logoPositionSelect = document.getElementById('logo-position-select');
+        const dailyColorsInputsDiv = document.getElementById('daily-colors-inputs');
+        const currentDateTime = document.getElementById('current-datetime');
+
+
         // Modal elements
         const confirmationModal = document.getElementById('confirmationModal');
         const modalMessage = document.getElementById('modalMessage');
@@ -396,6 +470,10 @@
 
         // Toast element
         const toast = document.getElementById('toast');
+
+        // Days of the week for daily colors
+        const daysOfWeekNames = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+        const daysOfWeekKeys = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
         // --- Funções Auxiliares ---
 
@@ -438,7 +516,121 @@
             });
         }
 
+        /**
+         * Atualiza a data e hora no cabeçalho.
+         */
+        function updateDateTime() {
+            const now = new Date();
+            const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+
+            const dayOfWeek = daysOfWeekNames[now.getDay()];
+            const dayOfMonth = now.getDate();
+            const month = months[now.getMonth()];
+            const year = now.getFullYear();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+
+            currentDateTime.innerText = `Bom dia! Hoje é ${dayOfWeek}, ${dayOfMonth} de ${month} de ${year} às ${hours}:${minutes}.`;
+        }
+
+
         // --- Funções de Renderização e Lógica do Admin ---
+
+        /**
+         * Renderiza os inputs de cor para cada dia da semana.
+         * Preenche com os valores existentes nas configurações globais.
+         */
+        function renderDailyColorsInputs() {
+            dailyColorsInputsDiv.innerHTML = '';
+            daysOfWeekKeys.forEach((dayKey, index) => {
+                const dayName = daysOfWeekNames[index];
+                const currentColor = globalSettings.dailyColors ? (globalSettings.dailyColors[dayKey] || '#e74c3c') : '#e74c3c';
+
+                const div = document.createElement('div');
+                div.className = 'color-input-group';
+                div.innerHTML = `
+                    <label>${dayName}:</label>
+                    <input type="color" id="color-${dayKey}" value="${currentColor}">
+                    <input type="text" id="hex-${dayKey}" value="${currentColor}" pattern="#[0-9a-fA-F]{6}" title="Formato Hex: #RRGGBB">
+                `;
+                dailyColorsInputsDiv.appendChild(div);
+
+                // Sincroniza color picker com text input
+                div.querySelector(`#color-${dayKey}`).addEventListener('input', (e) => {
+                    div.querySelector(`#hex-${dayKey}`).value = e.target.value;
+                });
+                div.querySelector(`#hex-${dayKey}`).addEventListener('input', (e) => {
+                    const hexValue = e.target.value;
+                    if (/^#[0-9a-fA-F]{6}$/.test(hexValue)) {
+                        div.querySelector(`#color-${dayKey}`).value = hexValue;
+                    }
+                });
+            });
+        }
+
+        /**
+         * Preenche o formulário de configurações globais com os dados do Firebase.
+         */
+        function fillSettingsForm() {
+            if (globalSettings.name) marmitariaNameInput.value = globalSettings.name;
+            if (globalSettings.slogan) marmitariaSloganInput.value = globalSettings.slogan;
+            if (globalSettings.logoUrl) {
+                settingsLogoPreview.src = globalSettings.logoUrl;
+                settingsLogoPreview.style.display = 'block';
+            } else {
+                settingsLogoPreview.style.display = 'none';
+                settingsLogoPreview.src = '';
+            }
+            if (globalSettings.logoPosition) logoPositionSelect.value = globalSettings.logoPosition;
+            renderDailyColorsInputs(); // Renderiza os inputs de cor com os valores atuais
+        }
+
+        /**
+         * Lida com o envio do formulário de configurações globais.
+         * Salva as configurações no Firebase.
+         * @param {Event} event - O evento de envio do formulário.
+         */
+        async function handleSettingsFormSubmit(event) {
+            event.preventDefault();
+
+            const newSettings = {
+                name: marmitariaNameInput.value,
+                slogan: marmitariaSloganInput.value,
+                logoPosition: logoPositionSelect.value,
+                dailyColors: {}
+            };
+
+            // Coleta as cores diárias
+            daysOfWeekKeys.forEach(dayKey => {
+                const hexInput = document.getElementById(`hex-${dayKey}`);
+                if (hexInput && /^#[0-9a-fA-F]{6}$/.test(hexInput.value)) {
+                    newSettings.dailyColors[dayKey] = hexInput.value;
+                }
+            });
+
+            const logoFile = settingsLogoUpload.files[0];
+            let logoUrl = globalSettings.logoUrl || ''; // Mantém a URL existente se não houver novo upload
+
+            try {
+                if (logoFile) {
+                    // Se um novo arquivo de logo foi selecionado, faz o upload
+                    const storageRef = storage.ref();
+                    const logoName = `logo-${Date.now()}-${logoFile.name}`; // Nome único para a logo
+                    const logoRef = storageRef.child(`settings_images/${logoName}`);
+                    await logoRef.put(logoFile);
+                    logoUrl = await logoRef.getDownloadURL();
+                    showToast("Logo enviada com sucesso!");
+                }
+                newSettings.logoUrl = logoUrl;
+
+                await db.ref('settings').set(newSettings);
+                showToast("Configurações salvas com sucesso!");
+            } catch (error) {
+                console.error("Erro ao salvar configurações no Firebase:", error);
+                showToast("Erro ao salvar configurações. Tente novamente.");
+            }
+        }
+
 
         /**
          * Renderiza os itens do cardápio na lista de edição.
@@ -505,6 +697,8 @@
                 Object.entries(orders).forEach(([orderId, order]) => {
                     const orderRow = document.createElement('tr');
                     const total = order.total ? order.total.toFixed(2).replace('.', ',') : '0,00';
+                    const orderDate = order.timestamp ? new Date(order.timestamp).toLocaleString('pt-BR') : 'N/A';
+
                     orderRow.innerHTML = `
                         <td>${orderId}</td>
                         <td>${order.clientName}</td>
@@ -518,6 +712,7 @@
                                 <option value="Cancelado" ${order.status === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
                             </select>
                         </td>
+                        <td>${orderDate}</td>
                         <td class="order-actions">
                             <button class="btn btn-info" onclick="showOrderDetails('${orderId}')">Detalhes</button>
                         </td>
@@ -525,7 +720,7 @@
                     ordersTableBody.appendChild(orderRow);
                 });
             } else {
-                ordersTableBody.innerHTML = '<tr><td colspan="5">Nenhum pedido encontrado.</td></tr>';
+                ordersTableBody.innerHTML = '<tr><td colspan="6">Nenhum pedido encontrado.</td></tr>';
             }
         }
         
@@ -543,7 +738,7 @@
             const itemType = document.getElementById('item-type').value;
             const imageFile = itemImageUpload.files[0]; // Pega o arquivo de imagem
 
-            let imageUrl = currentImagePreview.src === window.location.href ? '' : currentImagePreview.src; // Mantém a URL existente se não houver novo upload
+            let imageUrl = currentImagePreview.src === window.location.href || currentImagePreview.src === '' ? '' : currentImagePreview.src; // Mantém a URL existente se não houver novo upload
 
             try {
                 if (imageFile) {
@@ -557,6 +752,7 @@
                 }
 
                 const itemData = {
+                    id: itemId || db.ref(`menu/${itemType}`).push().key, // Garante um ID único para novos itens
                     name: itemName,
                     description: itemDescription,
                     price: itemPrice,
@@ -569,13 +765,13 @@
                     showToast(`Item "${itemName}" atualizado com sucesso!`);
                 } else {
                     // Adiciona novo item
-                    await db.ref(`menu/${itemType}`).push(itemData);
+                    await db.ref(`menu/${itemType}/${itemData.id}`).set(itemData); // Usa o ID gerado
                     showToast(`Item "${itemName}" adicionado com sucesso!`);
                 }
                 clearForm();
             } catch (error) {
                 console.error("Erro ao salvar item no Firebase:", error);
-                showToast("Erro ao salvar item. Tente novamente.");
+                showToast("Erro ao salvar item. Tente novamente. Verifique o console para detalhes.");
             }
         }
         
@@ -621,17 +817,20 @@
                     const itemToDelete = menuData[itemType][itemId];
                     if (itemToDelete && itemToDelete.image) {
                         // Se houver uma imagem associada, tenta excluí-la do Storage
-                        const imageRef = storage.refFromURL(itemToDelete.image);
-                        await imageRef.delete().catch(error => {
-                            console.warn("Erro ao excluir imagem do Storage (pode não existir ou permissão):", error);
+                        try {
+                            const imageRef = storage.refFromURL(itemToDelete.image);
+                            await imageRef.delete();
+                            showToast("Imagem associada excluída do Storage.");
+                        } catch (storageError) {
+                            console.warn("Erro ao excluir imagem do Storage (pode não existir ou permissão):", storageError);
                             // Continua mesmo se a exclusão da imagem falhar
-                        });
+                        }
                     }
                     await db.ref(`menu/${itemType}/${itemId}`).remove();
                     showToast("Item excluído com sucesso!");
                 } catch (error) {
                     console.error("Erro ao excluir item do Firebase:", error);
-                    showToast("Erro ao excluir item. Tente novamente.");
+                    showToast("Erro ao excluir item. Tente novamente. Verifique o console para detalhes.");
                 }
             }
         }
@@ -647,7 +846,7 @@
                 showToast(`Status do pedido ${orderId} atualizado para "${newStatus}"!`);
             } catch (error) {
                 console.error("Erro ao atualizar status do pedido no Firebase:", error);
-                showToast("Erro ao atualizar status do pedido. Tente novamente.");
+                showToast("Erro ao atualizar status do pedido. Tente novamente. Verifique o console para detalhes.");
             }
         }
 
@@ -687,6 +886,7 @@
             document.getElementById('menu-item-id').value = ''; // Limpa o ID oculto
             currentImagePreview.style.display = 'none'; // Esconde a pré-visualização da imagem
             currentImagePreview.src = ''; // Limpa a src da imagem
+            itemImageUpload.value = ''; // Limpa o input de arquivo
             showToast("Formulário limpo.");
         }
 
@@ -694,6 +894,23 @@
         document.addEventListener('DOMContentLoaded', () => {
             menuForm.addEventListener('submit', handleMenuFormSubmit);
             btnClearForm.addEventListener('click', clearForm);
+            settingsForm.addEventListener('submit', handleSettingsFormSubmit);
+
+            // Listener para as configurações globais
+            db.ref('settings').on('value', (snapshot) => {
+                const settings = snapshot.val();
+                if (settings) {
+                    globalSettings = settings;
+                    fillSettingsForm(); // Preenche o formulário de settings
+                } else {
+                    console.warn("Nenhuma configuração global encontrada no Firebase. Usando padrões.");
+                    globalSettings = {}; // Garante que o objeto esteja vazio se não houver settings
+                    fillSettingsForm(); // Preenche com valores padrão
+                }
+            }, (error) => {
+                console.error("Erro ao carregar configurações globais:", error);
+                showToast('Erro ao carregar configurações.');
+            });
             
             // Listener para o cardápio (menu)
             db.ref('menu').on('value', (snapshot) => {
@@ -709,6 +926,7 @@
 
             // Listener para os pedidos
             db.ref('orders').on('value', (snapshot) => {
+                ordersTableBody.innerHTML = ''; // Limpa a tabela antes de renderizar
                 loadingOrders.style.display = 'none'; // Esconde a mensagem de carregamento
                 const data = snapshot.val();
                 orders = data || {}; // Garante que seja um objeto
@@ -718,6 +936,9 @@
                 loadingOrders.innerText = 'Erro ao carregar pedidos.';
                 showToast('Erro ao carregar pedidos.');
             });
+
+            updateDateTime(); // Atualiza a data e hora ao carregar
+            setInterval(updateDateTime, 60000); // Atualiza a cada minuto
         });
     </script>
 </body>
