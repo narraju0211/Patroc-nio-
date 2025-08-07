@@ -255,6 +255,16 @@
             from {bottom: 30px; opacity: 1;}
             to {bottom: 0; opacity: 0;}
         }
+
+        /* Estilo para a pré-visualização da imagem */
+        #current-image-preview {
+            max-width: 100px;
+            max-height: 100px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: block; /* Garante que a imagem ocupe sua própria linha */
+        }
     </style>
 </head>
 <body>
@@ -290,8 +300,9 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="item-image-url">URL da Imagem</label>
-                    <input type="text" id="item-image-url">
+                    <label for="item-image-upload">Upload de Imagem</label>
+                    <input type="file" id="item-image-upload" accept="image/*">
+                    <img id="current-image-preview" src="" alt="Pré-visualização da imagem atual" style="display:none;">
                 </div>
                 <div class="form-actions">
                     <button type="submit" class="btn btn-success" id="btn-save-menu-item">Salvar Item</button>
@@ -344,6 +355,7 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script> <!-- Adicionado Firebase Storage -->
 
     <script>
         // Firebase configuration
@@ -360,6 +372,7 @@
         // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.database(); // Get a reference to the database service
+        const storage = firebase.storage(); // Get a reference to the storage service
 
         // --- Variáveis de Estado ---
         let menuData = { marmitas: {}, adicionais: {} }; // Usará objetos para mapear por ID do Firebase
@@ -372,6 +385,8 @@
         const btnClearForm = document.getElementById('btn-clear-form');
         const loadingMenuItems = document.getElementById('loading-menu-items');
         const loadingOrders = document.getElementById('loading-orders');
+        const itemImageUpload = document.getElementById('item-image-upload');
+        const currentImagePreview = document.getElementById('current-image-preview');
 
         // Modal elements
         const confirmationModal = document.getElementById('confirmationModal');
@@ -526,16 +541,28 @@
             const itemDescription = document.getElementById('item-description').value;
             const itemPrice = parseFloat(document.getElementById('item-price').value);
             const itemType = document.getElementById('item-type').value;
-            const itemImageUrl = document.getElementById('item-image-url').value;
+            const imageFile = itemImageUpload.files[0]; // Pega o arquivo de imagem
 
-            const itemData = {
-                name: itemName,
-                description: itemDescription,
-                price: itemPrice,
-                image: itemImageUrl
-            };
-            
+            let imageUrl = currentImagePreview.src === window.location.href ? '' : currentImagePreview.src; // Mantém a URL existente se não houver novo upload
+
             try {
+                if (imageFile) {
+                    // Se um novo arquivo foi selecionado, faz o upload
+                    const storageRef = storage.ref();
+                    const imageName = `${Date.now()}-${imageFile.name}`; // Nome único para a imagem
+                    const imageRef = storageRef.child(`menu_images/${imageName}`);
+                    await imageRef.put(imageFile);
+                    imageUrl = await imageRef.getDownloadURL(); // Obtém a URL de download
+                    showToast("Imagem enviada com sucesso!");
+                }
+
+                const itemData = {
+                    name: itemName,
+                    description: itemDescription,
+                    price: itemPrice,
+                    image: imageUrl // Salva a URL da imagem no Realtime Database
+                };
+                
                 if (itemId) {
                     // Atualiza item existente
                     await db.ref(`menu/${itemType}/${itemId}`).update(itemData);
@@ -566,7 +593,16 @@
                 document.getElementById('item-description').value = itemToEdit.description;
                 document.getElementById('item-price').value = itemToEdit.price;
                 document.getElementById('item-type').value = itemType; // Define o tipo correto
-                document.getElementById('item-image-url').value = itemToEdit.image || '';
+                
+                // Exibe a imagem atual
+                if (itemToEdit.image) {
+                    currentImagePreview.src = itemToEdit.image;
+                    currentImagePreview.style.display = 'block';
+                } else {
+                    currentImagePreview.style.display = 'none';
+                    currentImagePreview.src = '';
+                }
+                itemImageUpload.value = ''; // Limpa o campo de upload para um novo upload
                 showToast(`Editando item: ${itemToEdit.name}`);
             } else {
                 showToast('Item não encontrado para edição.');
@@ -582,6 +618,15 @@
             const confirmed = await showConfirmationModal("Tem certeza que deseja excluir este item?");
             if (confirmed) {
                 try {
+                    const itemToDelete = menuData[itemType][itemId];
+                    if (itemToDelete && itemToDelete.image) {
+                        // Se houver uma imagem associada, tenta excluí-la do Storage
+                        const imageRef = storage.refFromURL(itemToDelete.image);
+                        await imageRef.delete().catch(error => {
+                            console.warn("Erro ao excluir imagem do Storage (pode não existir ou permissão):", error);
+                            // Continua mesmo se a exclusão da imagem falhar
+                        });
+                    }
                     await db.ref(`menu/${itemType}/${itemId}`).remove();
                     showToast("Item excluído com sucesso!");
                 } catch (error) {
@@ -640,6 +685,8 @@
         function clearForm() {
             menuForm.reset();
             document.getElementById('menu-item-id').value = ''; // Limpa o ID oculto
+            currentImagePreview.style.display = 'none'; // Esconde a pré-visualização da imagem
+            currentImagePreview.src = ''; // Limpa a src da imagem
             showToast("Formulário limpo.");
         }
 
