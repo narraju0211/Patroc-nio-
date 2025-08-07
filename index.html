@@ -19,7 +19,6 @@
             --accent-green: #28a745;
         }
 
-
         /* Estilos básicos */
         body {
             font-family: 'Poppins', sans-serif;
@@ -31,7 +30,6 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-
         /* Container principal */
         .container {
             max-width: 1200px;
@@ -39,37 +37,92 @@
             padding: 20px;
         }
 
-
         /* Header */
         header {
-            text-align: center;
-            padding: 40px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 20px;
             background-color: var(--card-background);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
             margin-bottom: 20px;
         }
 
+        @media (min-width: 768px) {
+            header {
+                flex-direction: row;
+                justify-content: space-between;
+                padding: 20px 40px;
+            }
+            header .logo-container {
+                display: flex;
+                align-items: center;
+            }
+            header h1 {
+                margin: 0 0 0 15px;
+            }
+            header p {
+                text-align: right;
+            }
+        }
 
         header h1 {
             color: var(--primary-color);
-            font-size: 2.5em;
+            font-size: 2.2em;
             margin: 10px 0 0;
             font-weight: 700;
         }
 
-
-        header img {
-            max-width: 200px;
-            height: auto;
+        header .logo-upload-area {
+            cursor: pointer;
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--background-color);
+            border: 2px solid var(--primary-color);
+            margin: 0 auto 10px;
         }
 
+        header .logo-upload-area img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        header .logo-upload-area span {
+            font-size: 0.8em;
+            text-align: center;
+            padding: 5px;
+            color: var(--light-text-color);
+            transition: opacity 0.3s ease;
+        }
+
+        header .logo-upload-area:hover span {
+            opacity: 0;
+        }
+
+        header .logo-upload-area input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
 
         header p {
             color: var(--light-text-color);
-            font-size: 1.2em;
-            margin-top: 10px;
+            font-size: 1em;
+            margin-top: 5px;
         }
-
 
         /* Layout de Conteúdo */
         .content-wrapper {
@@ -77,7 +130,6 @@
             grid-template-columns: 2fr 1fr;
             gap: 20px;
         }
-
 
         /* Seções de Cardápio */
         .menu-section {
@@ -88,7 +140,6 @@
             margin-bottom: 20px;
         }
 
-
         .menu-section h2 {
             color: var(--secondary-color);
             font-size: 2em;
@@ -97,7 +148,6 @@
             margin-bottom: 20px;
             font-weight: 600;
         }
-
 
         /* Itens do Cardápio */
         .menu-item {
@@ -112,11 +162,9 @@
             border-bottom: none;
         }
 
-
         .menu-item:hover {
             background-color: #f9f9f9;
         }
-
 
         .item-image {
             width: 80px;
@@ -125,11 +173,9 @@
             border-radius: 8px;
         }
 
-
         .item-details {
             flex-grow: 1;
         }
-
 
         .item-details h3 {
             margin: 0;
@@ -138,19 +184,16 @@
             font-weight: 600;
         }
 
-
         .item-details p {
             margin: 5px 0 0;
             color: var(--light-text-color);
             font-size: 0.9em;
         }
 
-
         .item-actions {
             text-align: right;
             white-space: nowrap;
         }
-
 
         .item-price {
             display: block;
@@ -159,7 +202,6 @@
             color: var(--primary-color);
             margin-bottom: 5px;
         }
-
 
         .btn-add {
             background-color: var(--accent-green);
@@ -174,7 +216,45 @@
         .btn-add:hover {
             background-color: #218838;
         }
-
+        
+        /* Notificação de sucesso (Toast) */
+        .toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 30px;
+            font-size: 1em;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .toast.show {
+            visibility: visible;
+            -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+        @-webkit-keyframes fadein {
+            from {bottom: 0; opacity: 0;}
+            to {bottom: 30px; opacity: 1;}
+        }
+        @keyframes fadein {
+            from {bottom: 0; opacity: 0;}
+            to {bottom: 30px; opacity: 1;}
+        }
+        @-webkit-keyframes fadeout {
+            from {bottom: 30px; opacity: 1;}
+            to {bottom: 0; opacity: 0;}
+        }
+        @keyframes fadeout {
+            from {bottom: 30px; opacity: 1;}
+            to {bottom: 0; opacity: 0;}
+        }
 
         /* Carrinho e Checkout */
         .cart-section, .checkout-section, .order-tracking-section {
@@ -186,7 +266,6 @@
             height: fit-content;
         }
 
-
         .cart-section h2, .checkout-section h2, .order-tracking-section h2 {
             color: var(--secondary-color);
             font-size: 1.8em;
@@ -194,7 +273,6 @@
             padding-bottom: 5px;
             margin-bottom: 20px;
         }
-
 
         .cart-item {
             display: flex;
@@ -207,11 +285,9 @@
             border-bottom: none;
         }
 
-
         .cart-item-name {
             font-weight: 600;
         }
-
 
         .cart-item-remove {
             color: var(--primary-color);
@@ -219,7 +295,6 @@
             font-size: 0.9em;
             text-decoration: underline;
         }
-
 
         .cart-summary {
             margin-top: 20px;
@@ -230,7 +305,6 @@
             display: flex;
             justify-content: space-between;
         }
-
 
         .btn-checkout {
             width: 100%;
@@ -249,19 +323,16 @@
             background-color: #c0392b;
         }
 
-
         /* Formulário de Checkout */
         .form-group {
             margin-bottom: 15px;
         }
-
 
         .form-group label {
             display: block;
             margin-bottom: 5px;
             font-weight: 600;
         }
-
 
         .form-group input, .form-group textarea, .form-group select {
             width: 100%;
@@ -271,7 +342,21 @@
             font-size: 1em;
             box-sizing: border-box; /* Para incluir padding e borda na largura */
         }
-
+        .form-group .item-counter {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        .form-group .item-counter button {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 1px solid var(--secondary-color);
+            background-color: #fff;
+            color: var(--secondary-color);
+            cursor: pointer;
+        }
 
         /* Acompanhamento de Pedidos */
         .order-tracking-section label {
@@ -279,7 +364,6 @@
             margin-bottom: 5px;
             font-weight: 600;
         }
-
 
         .order-tracking-section input {
             width: calc(100% - 22px);
@@ -291,13 +375,11 @@
             box-sizing: border-box;
         }
 
-
         .order-status {
             margin-top: 10px;
             font-weight: bold;
             color: var(--secondary-color);
         }
-
 
         .update-status-form {
             margin-top: 15px;
@@ -305,13 +387,11 @@
             border-top: 1px solid #eee;
         }
 
-
         .update-status-form label {
             display: block;
             margin-bottom: 5px;
             font-weight: 400;
         }
-
 
         .update-status-form select {
             width: 100%;
@@ -322,7 +402,6 @@
             margin-bottom: 15px;
             box-sizing: border-box;
         }
-
 
         .btn-update-status {
             background-color: var(--primary-color);
@@ -339,23 +418,30 @@
             background-color: #c0392b;
         }
 
-
         /* Responsividade */
         @media (max-width: 768px) {
-            header h1 {
-                font-size: 2.2em;
-            }
             .content-wrapper {
                 grid-template-columns: 1fr;
+            }
+            header h1 {
+                font-size: 2.2em;
             }
         }
     </style>
 </head>
 <body>
 
+    <div id="toast" class="toast"></div>
+
     <header>
-        <img src="URL_DA_SUA_LOGO" alt="Denny Martins Marmitaria">
-        <h1>Denny Martins</h1>
+        <div class="logo-container">
+            <div class="logo-upload-area">
+                <span id="logo-text">Clique aqui para carregar sua logo</span>
+                <img id="logo-preview" src="" alt="Logo da Marmitaria" style="display:none;">
+                <input type="file" id="logo-input" accept="image/*">
+            </div>
+            <h1>Denny Martins</h1>
+        </div>
         <p>Sua marmitaria de qualidade!</p>
     </header>
 
@@ -402,19 +488,19 @@
                             <input type="text" id="address" name="address" required>
                         </div>
                         <div class="form-group">
-                            <label for="phone">Telefone</label>
-                            <input type="tel" id="phone" name="phone" required>
+                            <label for="phone">Telefone (DDD + Número)</label>
+                            <input type="tel" id="phone" name="phone" required placeholder="Ex: 18999998888">
                         </div>
                         <div class="form-group">
                             <label for="payment">Forma de Pagamento</label>
                             <select id="payment" name="payment" required>
                                 <option value="">Selecione...</option>
-                                <option value="dinheiro">Dinheiro</option>
-                                <option value="cartao">Cartão na Entrega</option>
-                                <option value="pix">PIX</option>
+                                <option value="Dinheiro">Dinheiro</option>
+                                <option value="Cartão na Entrega">Cartão na Entrega</option>
+                                <option value="PIX">PIX</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn-checkout">Confirmar Pedido</button>
+                        <button type="submit" class="btn-checkout">Enviar Pedido por WhatsApp</button>
                     </form>
                 </div>
 
@@ -431,11 +517,11 @@
                         <input type="text" id="updateOrderId" placeholder="Digite o código">
                         <label for="newStatus">Novo Status:</label>
                         <select id="newStatus">
-                            <option value="pendente">Pendente</option>
-                            <option value="preparando">Preparando</option>
-                            <option value="saiu_para_entrega">Saiu para Entrega</option>
-                            <option value="entregue">Entregue</option>
-                            <option value="cancelado">Cancelado</option>
+                            <option value="Pendente">Pendente</option>
+                            <option value="Preparando">Preparando</option>
+                            <option value="Saiu para Entrega">Saiu para Entrega</option>
+                            <option value="Entregue">Entregue</option>
+                            <option value="Cancelado">Cancelado</option>
                         </select>
                         <button class="btn-update-status" onclick="updateOrderStatus()">Atualizar Status</button>
                         <div id="update-status-message"></div>
@@ -460,7 +546,7 @@
         };
 
         // --- Variáveis de Estado (SIMULAÇÃO) ---
-        let cart = [];
+        let cart = new Map(); // Usamos um Map para rastrear itens e suas quantidades
         // Simulação de dados de pedidos (Substituir por Firebase)
         const orders = {
             'DM123': { status: 'preparando', items: [{ name: 'Frango Grelhado com Legumes', price: 25.00 }] },
@@ -480,18 +566,30 @@
         const updateOrderIdInput = document.getElementById('updateOrderId');
         const newStatusSelect = document.getElementById('newStatus');
         const updateStatusMessageDiv = document.getElementById('update-status-message');
+        const toast = document.getElementById('toast');
+        const logoInput = document.getElementById('logo-input');
+        const logoPreview = document.getElementById('logo-preview');
+        const logoText = document.getElementById('logo-text');
 
         // --- Funções de Renderização ---
 
+        function findMenuItem(itemId) {
+            let item = menuData.marmitas.find(m => m.id === itemId);
+            if (!item) {
+                item = menuData.adicionais.find(a => a.id === itemId);
+            }
+            return item;
+        }
+
         function renderMenu() {
-            // Renderiza marmitas
-            menuData.marmitas.forEach(item => {
-                const itemHtml = `
+            function createMenuItemHTML(item, isMarmita = true) {
+                const descriptionHTML = isMarmita ? `<p>${item.description}</p>` : '';
+                return `
                     <div class="menu-item" data-id="${item.id}">
                         <img src="${item.image}" alt="${item.name}" class="item-image">
                         <div class="item-details">
                             <h3>${item.name}</h3>
-                            <p>${item.description}</p>
+                            ${descriptionHTML}
                         </div>
                         <div class="item-actions">
                             <span class="item-price">R$ ${item.price.toFixed(2).replace('.', ',')}</span>
@@ -499,24 +597,14 @@
                         </div>
                     </div>
                 `;
-                marmitasList.innerHTML += itemHtml;
+            }
+            
+            menuData.marmitas.forEach(item => {
+                marmitasList.innerHTML += createMenuItemHTML(item);
             });
 
-            // Renderiza adicionais
             menuData.adicionais.forEach(item => {
-                const itemHtml = `
-                    <div class="menu-item" data-id="${item.id}">
-                        <img src="${item.image}" alt="${item.name}" class="item-image">
-                        <div class="item-details">
-                            <h3>${item.name}</h3>
-                        </div>
-                        <div class="item-actions">
-                            <span class="item-price">R$ ${item.price.toFixed(2).replace('.', ',')}</span>
-                            <button class="btn-add" onclick="addToCart(${item.id})">Adicionar</button>
-                        </div>
-                    </div>
-                `;
-                adicionaisList.innerHTML += itemHtml;
+                adicionaisList.innerHTML += createMenuItemHTML(item, false);
             });
         }
 
@@ -524,22 +612,26 @@
             cartList.innerHTML = '';
             let total = 0;
 
-            if (cart.length === 0) {
+            if (cart.size === 0) {
                 emptyCartMessage.style.display = 'block';
                 cartSummary.style.display = 'none';
             } else {
                 emptyCartMessage.style.display = 'none';
                 cartSummary.style.display = 'block';
-                cart.forEach(item => {
-                    total += item.price;
-                    const itemHtml = `
-                        <div class="cart-item">
-                            <span class="cart-item-name">${item.name}</span>
-                            <span>R$ ${item.price.toFixed(2).replace('.', ',')}</span>
-                            <span class="cart-item-remove" onclick="removeFromCart(${item.id})">Remover</span>
-                        </div>
-                    `;
-                    cartList.innerHTML += itemHtml;
+                cart.forEach((quantity, itemId) => {
+                    const item = findMenuItem(itemId);
+                    if (item) {
+                        const subtotal = item.price * quantity;
+                        total += subtotal;
+                        const itemHtml = `
+                            <div class="cart-item">
+                                <span class="cart-item-name">${item.name} (x${quantity})</span>
+                                <span>R$ ${subtotal.toFixed(2).replace('.', ',')}</span>
+                                <span class="cart-item-remove" onclick="removeFromCart(${item.id})">Remover</span>
+                            </div>
+                        `;
+                        cartList.innerHTML += itemHtml;
+                    }
                 });
             }
 
@@ -551,25 +643,24 @@
         function addToCart(itemId) {
             const item = findMenuItem(itemId);
             if (item) {
-                cart.push(item);
+                if (cart.has(itemId)) {
+                    cart.set(itemId, cart.get(itemId) + 1);
+                } else {
+                    cart.set(itemId, 1);
+                }
                 renderCart();
+                showToast(`"${item.name}" adicionado(a)!`);
             }
         }
 
         function removeFromCart(itemId) {
-            const index = cart.findIndex(item => item.id === itemId);
-            if (index > -1) {
-                cart.splice(index, 1);
-                renderCart();
+            const quantity = cart.get(itemId);
+            if (quantity > 1) {
+                cart.set(itemId, quantity - 1);
+            } else {
+                cart.delete(itemId);
             }
-        }
-
-        function findMenuItem(itemId) {
-            let item = menuData.marmitas.find(m => m.id === itemId);
-            if (!item) {
-                item = menuData.adicionais.find(a => a.id === itemId);
-            }
-            return item;
+            renderCart();
         }
 
         function showCheckout() {
@@ -577,21 +668,93 @@
             checkoutFormSection.style.display = 'block';
         }
 
+        function showToast(message) {
+            toast.innerText = message;
+            toast.className = "toast show";
+            setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
         function handleDeliveryFormSubmit(event) {
             event.preventDefault();
             const formData = new FormData(deliveryForm);
-            const order = {
-                client: {
-                    name: formData.get('name'),
-                    address: formData.get('address'),
-                    phone: formData.get('phone'),
-                },
-                paymentMethod: formData.get('payment'),
-                items: cart,
-                total: parseFloat(cartTotalSpan.innerText.replace('R$ ', '').replace(',', '.')),
-                timestamp: new Date().toISOString()
-            };
+            
+            const clientName = formData.get('name');
+            const clientAddress = formData.get('address');
+            const clientPhone = formData.get('phone').replace(/\D/g, ''); // Remove todos os caracteres não numéricos
+            const paymentMethod = formData.get('payment');
 
-            // --- AQUI VOCÊ FARIA A INTEGRAÇÃO COM O FIREBASE PARA SALVAR O PEDIDO ---
-            const newOrderId = 'DM' + Math.floor(Math.random() * 1000); // Simula a criação de um ID
-            orders
+            // Formata os itens do carrinho para a mensagem
+            let cartItemsText = '--- Pedido ---\n';
+            let total = 0;
+            cart.forEach((quantity, itemId) => {
+                const item = findMenuItem(itemId);
+                if (item) {
+                    const subtotal = item.price * quantity;
+                    total += subtotal;
+                    cartItemsText += `${quantity}x ${item.name} (R$ ${subtotal.toFixed(2).replace('.', ',')})\n`;
+                }
+            });
+
+            // Adiciona o total e informações do cliente
+            const totalText = `\n*Total do Pedido:* R$ ${total.toFixed(2).replace('.', ',')}`;
+            const clientInfoText = `\n--- Dados para Entrega ---\n*Nome:* ${clientName}\n*Endereço:* ${clientAddress}\n*Forma de Pagamento:* ${paymentMethod}`;
+
+            const fullMessage = encodeURIComponent(
+                'Olá, gostaria de fazer o seguinte pedido:\n\n' +
+                cartItemsText +
+                totalText +
+                clientInfoText
+            );
+
+            // WhatsApp agora com o número definido
+            const whatsappNumber = '18981561535'; 
+            const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${fullMessage}`;
+
+            // Abre o link no WhatsApp
+            window.open(whatsappUrl, '_blank');
+        }
+        
+        // --- Lógica de Simulação de Rastreamento (Mantido) ---
+        function trackOrder() {
+            const orderId = orderIdInput.value.toUpperCase();
+            if (orders[orderId]) {
+                orderStatusDiv.innerText = `Status do Pedido ${orderId}: ${orders[orderId].status}`;
+            } else {
+                orderStatusDiv.innerText = 'Pedido não encontrado.';
+            }
+        }
+
+        function updateOrderStatus() {
+            const orderId = updateOrderIdInput.value.toUpperCase();
+            const newStatus = newStatusSelect.value;
+            if (orders[orderId]) {
+                orders[orderId].status = newStatus;
+                updateStatusMessageDiv.innerText = `Status do Pedido ${orderId} atualizado para ${newStatus}.`;
+            } else {
+                updateStatusMessageDiv.innerText = 'Pedido não encontrado.';
+            }
+        }
+        
+        // --- Função para carregar a logo ---
+        logoInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    logoPreview.src = e.target.result;
+                    logoPreview.style.display = 'block';
+                    logoText.style.display = 'none';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // --- Inicialização ---
+        window.onload = function() {
+            renderMenu();
+            renderCart();
+            deliveryForm.addEventListener('submit', handleDeliveryFormSubmit);
+        };
+    </script>
+</body>
+                            </html>
