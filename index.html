@@ -10,7 +10,7 @@
     <style>
         /* Variáveis de Cores */
         :root {
-            --primary-color: #e74c3c;
+            --primary-color: #e74c3c; /* Cor padrão, será sobrescrita pelo Firebase */
             --secondary-color: #2c3e50;
             --background-color: #f4f7f6;
             --card-background: #ffffff;
@@ -41,18 +41,25 @@
         header {
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: center; /* Posição padrão, será sobrescrita */
             flex-direction: column;
             padding: 20px;
             background-color: var(--card-background);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
             margin-bottom: 20px;
+            text-align: center; /* Para centralizar o texto em mobile */
         }
+
+        /* Classes para posição do logo/header */
+        .header-align-left { justify-content: flex-start; text-align: left; }
+        .header-align-center { justify-content: center; text-align: center; }
+        .header-align-right { justify-content: flex-end; text-align: right; }
+
 
         @media (min-width: 768px) {
             header {
                 flex-direction: row;
-                justify-content: space-between;
+                justify-content: space-between; /* Padrão desktop */
                 padding: 20px 40px;
             }
             header .logo-container {
@@ -65,6 +72,13 @@
             header p {
                 text-align: right;
             }
+            /* Ajustes para desktop com alinhamento */
+            .header-align-left h1 { margin-left: 15px; margin-right: 0; }
+            .header-align-center h1 { margin-left: 15px; margin-right: 15px; } /* Ajuste para centralizar */
+            .header-align-right h1 { margin-left: 0; margin-right: 15px; }
+            .header-align-left p { text-align: left; }
+            .header-align-center p { text-align: center; }
+            .header-align-right p { text-align: right; }
         }
 
         header h1 {
@@ -85,6 +99,12 @@
             color: var(--light-text-color);
             font-size: 1em;
             margin-top: 5px;
+        }
+
+        .header-info {
+            font-size: 0.9em;
+            color: var(--light-text-color);
+            margin-top: 10px;
         }
 
         /* Layout de Conteúdo */
@@ -390,12 +410,15 @@
 
     <div id="toast" class="toast"></div>
 
-    <header>
+    <header id="main-header">
         <div class="logo-container">
             <img id="logo-preview" src="https://via.placeholder.com/100/e74c3c/ffffff?text=Logo" alt="Logo da Marmitaria">
-            <h1>Denny Martins</h1>
+            <h1 id="marmitaria-name">Denny Martins</h1>
         </div>
-        <p>Sua marmitaria de qualidade!</p>
+        <div>
+            <p id="marmitaria-slogan">Sua marmitaria de qualidade!</p>
+            <p class="header-info" id="current-datetime"></p>
+        </div>
     </header>
 
     <div class="container">
@@ -495,6 +518,7 @@
         // --- Variáveis de Estado ---
         let menuData = { marmitas: {}, adicionais: {} }; // Agora será populado pelo Firebase
         let cart = new Map();
+        let globalSettings = {}; // Para armazenar as configurações da marmitaria
 
         // --- Elementos do DOM ---
         const marmitasList = document.getElementById('marmitas-list');
@@ -511,18 +535,78 @@
         const loadingMarmitas = document.getElementById('loading-marmitas');
         const loadingAdicionais = document.getElementById('loading-adicionais');
 
+        // Header elements for dynamic updates
+        const mainHeader = document.getElementById('main-header');
+        const logoPreview = document.getElementById('logo-preview');
+        const marmitariaName = document.getElementById('marmitaria-name');
+        const marmitariaSlogan = document.getElementById('marmitaria-slogan');
+        const currentDateTime = document.getElementById('current-datetime');
+
+
         // --- Funções de Lógica do Aplicativo ---
 
         /**
+         * Atualiza a data e hora no cabeçalho.
+         */
+        function updateDateTime() {
+            const now = new Date();
+            const daysOfWeek = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+            const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+
+            const dayOfWeek = daysOfWeek[now.getDay()];
+            const dayOfMonth = now.getDate();
+            const month = months[now.getMonth()];
+            const year = now.getFullYear();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+
+            currentDateTime.innerText = `Bom dia! Hoje é ${dayOfWeek}, ${dayOfMonth} de ${month} de ${year} às ${hours}:${minutes}.`;
+        }
+
+        /**
+         * Aplica as configurações globais carregadas do Firebase.
+         */
+        function applyGlobalSettings() {
+            if (globalSettings.name) {
+                marmitariaName.innerText = globalSettings.name;
+            }
+            if (globalSettings.slogan) {
+                marmitariaSlogan.innerText = globalSettings.slogan;
+            }
+            if (globalSettings.logoUrl) {
+                logoPreview.src = globalSettings.logoUrl;
+            } else {
+                logoPreview.src = 'https://via.placeholder.com/100/e74c3c/ffffff?text=Logo'; // Fallback
+            }
+
+            // Aplica a posição do logo
+            mainHeader.classList.remove('header-align-left', 'header-align-center', 'header-align-right');
+            if (globalSettings.logoPosition) {
+                mainHeader.classList.add(`header-align-${globalSettings.logoPosition}`);
+            } else {
+                mainHeader.classList.add('header-align-center'); // Padrão
+            }
+
+            // Aplica a cor do dia da semana
+            const today = new Date().getDay(); // 0 = Domingo, 1 = Segunda, etc.
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const currentDayName = days[today];
+
+            if (globalSettings.dailyColors && globalSettings.dailyColors[currentDayName]) {
+                document.documentElement.style.setProperty('--primary-color', globalSettings.dailyColors[currentDayName]);
+            } else {
+                document.documentElement.style.setProperty('--primary-color', '#e74c3c'); // Cor padrão
+            }
+        }
+
+        /**
          * Encontra um item do menu pelo seu ID.
-         * @param {number} itemId - O ID do item a ser encontrado.
+         * @param {string} itemId - O ID do item a ser encontrado.
          * @returns {object|undefined} O objeto do item se encontrado, caso contrário, undefined.
          */
         function findMenuItem(itemId) {
             let item = null;
-            // Verifica se menuData.marmitas existe e é um objeto/array
             if (menuData.marmitas && typeof menuData.marmitas === 'object') {
-                // Converte para array de valores se for um objeto (como vem do Firebase)
                 item = Object.values(menuData.marmitas).find(m => m.id === itemId);
             }
             if (!item && menuData.adicionais && typeof menuData.adicionais === 'object') {
@@ -548,7 +632,7 @@
             function createMenuItemHTML(item, isMarmita = true) {
                 const descriptionHTML = isMarmita && item.description ? `<p>${item.description}</p>` : '';
                 // Fallback para imagem caso a URL esteja vazia ou inválida
-                const imageUrl = item.image && item.image.startsWith('http') ? item.image : `https://placehold.co/80x80/e74c3c/ffffff?text=${item.name.substring(0, Math.min(item.name.length, 5))}`;
+                const imageUrl = item.image && item.image.startsWith('http') ? item.image : `https://placehold.co/80x80/e74c3c/ffffff?text=Item`;
                 return `
                     <div class="menu-item" data-id="${item.id}">
                         <img src="${imageUrl}" alt="${item.name}" class="item-image" onerror="this.onerror=null;this.src='https://placehold.co/80x80/e74c3c/ffffff?text=Item';">
@@ -557,8 +641,8 @@
                             ${descriptionHTML}
                         </div>
                         <div class="item-actions">
-                            <span class="item-price">R$ ${item.price.toFixed(2).replace('.', ',')}</span>
-                            <button class="btn-add" onclick="addToCart(${item.id})">Adicionar</button>
+                            <span class="item-price">R$ ${item.price ? item.price.toFixed(2).replace('.', ',') : '0,00'}</span>
+                            <button class="btn-add" onclick="addToCart('${item.id}')">Adicionar</button>
                         </div>
                     </div>
                 `;
@@ -604,7 +688,7 @@
                             <div class="cart-item">
                                 <span class="cart-item-name">${item.name} (x${quantity})</span>
                                 <span>R$ ${subtotal.toFixed(2).replace('.', ',')}</span>
-                                <span class="cart-item-remove" onclick="removeFromCart(${item.id})">Remover</span>
+                                <span class="cart-item-remove" onclick="removeFromCart('${item.id}')">Remover</span>
                             </div>
                         `;
                         cartList.innerHTML += itemHtml;
@@ -617,7 +701,7 @@
 
         /**
          * Adiciona um item ao carrinho ou incrementa sua quantidade.
-         * @param {number} itemId - O ID do item a ser adicionado.
+         * @param {string} itemId - O ID do item a ser adicionado.
          */
         function addToCart(itemId) {
             const item = findMenuItem(itemId);
@@ -634,7 +718,7 @@
 
         /**
          * Remove um item do carrinho ou decrementa sua quantidade.
-         * @param {number} itemId - O ID do item a ser removido.
+         * @param {string} itemId - O ID do item a ser removido.
          */
         function removeFromCart(itemId) {
             const quantity = cart.get(itemId);
@@ -652,16 +736,6 @@
         function showCheckout() {
             document.querySelector('.cart-section').style.display = 'none';
             checkoutFormSection.style.display = 'block';
-        }
-
-        /**
-         * Exibe uma mensagem de toast na parte inferior da tela.
-         * @param {string} message - A mensagem a ser exibida.
-         */
-        function showToast(message) {
-            toast.innerText = message;
-            toast.className = "toast show";
-            setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
         /**
@@ -747,12 +821,14 @@
 
             } catch (error) {
                 console.error("Erro ao enviar pedido para o Firebase:", error);
-                if (error.code === 'PERMISSION_DENIED') {
-                    showToast("Erro: Permissão negada. Verifique as regras de segurança do Firebase.");
-                    console.error("Firebase PERMISSION_DENIED: Verifique suas regras de segurança para o nó '/orders'.");
-                } else {
-                    showToast("Erro ao enviar pedido. Tente novamente.");
+                // Adiciona mais detalhes para depuração
+                if (error.code) {
+                    console.error("Código de Erro Firebase:", error.code);
                 }
+                if (error.message) {
+                    console.error("Mensagem de Erro Firebase:", error.message);
+                }
+                showToast("Erro ao enviar pedido. Tente novamente. Verifique o console para detalhes.");
             }
         }
         
@@ -789,6 +865,20 @@
         document.addEventListener('DOMContentLoaded', () => {
             deliveryForm.addEventListener('submit', handleDeliveryFormSubmit);
 
+            // Carrega as configurações globais do Firebase
+            db.ref('settings').on('value', (snapshot) => {
+                const settings = snapshot.val();
+                if (settings) {
+                    globalSettings = settings;
+                    applyGlobalSettings();
+                } else {
+                    console.warn("Nenhuma configuração global encontrada no Firebase. Usando padrões.");
+                }
+            }, (error) => {
+                console.error("Erro ao carregar configurações globais:", error);
+                showToast('Erro ao carregar configurações.');
+            });
+
             // Carrega os dados do cardápio do Firebase em tempo real
             db.ref('menu').on('value', (snapshot) => {
                 loadingMarmitas.style.display = 'none'; // Esconde o loading
@@ -810,6 +900,8 @@
             });
             
             renderCart(); // Renderiza o carrinho inicialmente (vazio ou com itens salvos se houver)
+            updateDateTime(); // Atualiza a data e hora ao carregar
+            setInterval(updateDateTime, 60000); // Atualiza a cada minuto
         });
     </script>
 </body>
