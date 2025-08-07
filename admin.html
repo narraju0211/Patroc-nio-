@@ -312,11 +312,12 @@
                     <label for="marmitaria-slogan-input">Slogan da Marmitaria</label>
                     <input type="text" id="marmitaria-slogan-input">
                 </div>
-                <div class="form-group">
+                <!-- Logo agora é fixa, removido upload -->
+                <!-- <div class="form-group">
                     <label for="settings-logo-upload">Upload da Logo</label>
                     <input type="file" id="settings-logo-upload" accept="image/*">
                     <img id="settings-logo-preview" src="" alt="Pré-visualização da logo atual" style="display:none;">
-                </div>
+                </div> -->
                 <div class="form-group">
                     <label for="logo-position-select">Posição da Logo no Site</label>
                     <select id="logo-position-select">
@@ -360,11 +361,12 @@
                         <option value="adicionais">Adicional</option>
                     </select>
                 </div>
-                <div class="form-group">
+                <!-- Campo de imagem removido, usará placeholder no cliente -->
+                <!-- <div class="form-group">
                     <label for="item-image-upload">Upload de Imagem</label>
                     <input type="file" id="item-image-upload" accept="image/*">
                     <img id="current-image-preview" src="" alt="Pré-visualização da imagem atual" style="display:none;">
-                </div>
+                </div> -->
                 <div class="form-actions">
                     <button type="submit" class="btn btn-success" id="btn-save-menu-item">Salvar Item</button>
                     <button type="button" class="btn btn-info" id="btn-clear-form">Limpar Formulário</button>
@@ -417,7 +419,7 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script> <!-- Adicionado Firebase Storage -->
+    <!-- Firebase Storage SDK removido -->
 
     <script>
         // Firebase configuration
@@ -426,7 +428,7 @@
             authDomain: "aquilesplacarpro.firebaseapp.com",
             databaseURL: "https://aquilesplacarpro-default-rtdb.firebaseio.com",
             projectId: "aquilesplacarpro",
-            storageBucket: "aquilesplacarpro.firebasestorage.app",
+            storageBucket: "aquilesplacarpro.firebasestorage.app", // Mantido mas não usado para upload
             messagingSenderId: "922321609151",
             appId: "1:922321609151:web:ba51f5b21b322cf0a4c10a"
         };
@@ -434,7 +436,7 @@
         // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.database(); // Get a reference to the database service
-        const storage = firebase.storage(); // Get a reference to the storage service
+        // const storage = firebase.storage(); // Firebase Storage removido
 
         // --- Variáveis de Estado ---
         let menuData = { marmitas: {}, adicionais: {} }; // Usará objetos para mapear por ID do Firebase
@@ -448,15 +450,15 @@
         const btnClearForm = document.getElementById('btn-clear-form');
         const loadingMenuItems = document.getElementById('loading-menu-items');
         const loadingOrders = document.getElementById('loading-orders');
-        const itemImageUpload = document.getElementById('item-image-upload');
-        const currentImagePreview = document.getElementById('current-image-preview');
+        // const itemImageUpload = document.getElementById('item-image-upload'); // Removido
+        // const currentImagePreview = document.getElementById('current-image-preview'); // Removido
 
         // Settings form elements
         const settingsForm = document.getElementById('settings-form');
         const marmitariaNameInput = document.getElementById('marmitaria-name-input');
         const marmitariaSloganInput = document.getElementById('marmitaria-slogan-input');
-        const settingsLogoUpload = document.getElementById('settings-logo-upload');
-        const settingsLogoPreview = document.getElementById('settings-logo-preview');
+        // const settingsLogoUpload = document.getElementById('settings-logo-upload'); // Removido
+        // const settingsLogoPreview = document.getElementById('settings-logo-preview'); // Removido
         const logoPositionSelect = document.getElementById('logo-position-select');
         const dailyColorsInputsDiv = document.getElementById('daily-colors-inputs');
         const currentDateTime = document.getElementById('current-datetime');
@@ -574,13 +576,14 @@
         function fillSettingsForm() {
             if (globalSettings.name) marmitariaNameInput.value = globalSettings.name;
             if (globalSettings.slogan) marmitariaSloganInput.value = globalSettings.slogan;
-            if (globalSettings.logoUrl) {
-                settingsLogoPreview.src = globalSettings.logoUrl;
-                settingsLogoPreview.style.display = 'block';
-            } else {
-                settingsLogoPreview.style.display = 'none';
-                settingsLogoPreview.src = '';
-            }
+            // Logo agora é fixa, não preenchemos o preview aqui
+            // if (globalSettings.logoUrl) {
+            //     settingsLogoPreview.src = globalSettings.logoUrl;
+            //     settingsLogoPreview.style.display = 'block';
+            // } else {
+            //     settingsLogoPreview.style.display = 'none';
+            //     settingsLogoPreview.src = '';
+            // }
             if (globalSettings.logoPosition) logoPositionSelect.value = globalSettings.logoPosition;
             renderDailyColorsInputs(); // Renderiza os inputs de cor com os valores atuais
         }
@@ -608,26 +611,15 @@
                 }
             });
 
-            const logoFile = settingsLogoUpload.files[0];
-            let logoUrl = globalSettings.logoUrl || ''; // Mantém a URL existente se não houver novo upload
+            // Logo agora é fixa, não há upload
+            newSettings.logoUrl = 'http://googleusercontent.com/file_content/11'; // URL fixa da logo
 
             try {
-                if (logoFile) {
-                    // Se um novo arquivo de logo foi selecionado, faz o upload
-                    const storageRef = storage.ref();
-                    const logoName = `logo-${Date.now()}-${logoFile.name}`; // Nome único para a logo
-                    const logoRef = storageRef.child(`settings_images/${logoName}`);
-                    await logoRef.put(logoFile);
-                    logoUrl = await logoRef.getDownloadURL();
-                    showToast("Logo enviada com sucesso!");
-                }
-                newSettings.logoUrl = logoUrl;
-
                 await db.ref('settings').set(newSettings);
                 showToast("Configurações salvas com sucesso!");
             } catch (error) {
                 console.error("Erro ao salvar configurações no Firebase:", error);
-                showToast("Erro ao salvar configurações. Tente novamente.");
+                showToast("Erro ao salvar configurações. Tente novamente. Verifique o console para detalhes.");
             }
         }
 
@@ -694,7 +686,13 @@
             loadingOrders.style.display = 'none'; // Esconde o loading
 
             if (orders && Object.keys(orders).length > 0) {
-                Object.entries(orders).forEach(([orderId, order]) => {
+                // Converte o objeto de pedidos em um array para poder ordenar
+                const sortedOrders = Object.entries(orders).sort(([, a], [, b]) => {
+                    // Ordena do mais novo para o mais antigo
+                    return (b.timestamp || 0) - (a.timestamp || 0);
+                });
+
+                sortedOrders.forEach(([orderId, order]) => {
                     const orderRow = document.createElement('tr');
                     const total = order.total ? order.total.toFixed(2).replace('.', ',') : '0,00';
                     const orderDate = order.timestamp ? new Date(order.timestamp).toLocaleString('pt-BR') : 'N/A';
@@ -736,29 +734,17 @@
             const itemDescription = document.getElementById('item-description').value;
             const itemPrice = parseFloat(document.getElementById('item-price').value);
             const itemType = document.getElementById('item-type').value;
-            const imageFile = itemImageUpload.files[0]; // Pega o arquivo de imagem
 
-            let imageUrl = currentImagePreview.src === window.location.href || currentImagePreview.src === '' ? '' : currentImagePreview.src; // Mantém a URL existente se não houver novo upload
-
+            const itemData = {
+                // Se for um novo item, gera um ID; se for edição, usa o ID existente
+                id: itemId || db.ref(`menu/${itemType}`).push().key,
+                name: itemName,
+                description: itemDescription,
+                price: itemPrice,
+                image: '' // Imagem agora é fixa/placeholder no cliente, não é editável aqui
+            };
+            
             try {
-                if (imageFile) {
-                    // Se um novo arquivo foi selecionado, faz o upload
-                    const storageRef = storage.ref();
-                    const imageName = `${Date.now()}-${imageFile.name}`; // Nome único para a imagem
-                    const imageRef = storageRef.child(`menu_images/${imageName}`);
-                    await imageRef.put(imageFile);
-                    imageUrl = await imageRef.getDownloadURL(); // Obtém a URL de download
-                    showToast("Imagem enviada com sucesso!");
-                }
-
-                const itemData = {
-                    id: itemId || db.ref(`menu/${itemType}`).push().key, // Garante um ID único para novos itens
-                    name: itemName,
-                    description: itemDescription,
-                    price: itemPrice,
-                    image: imageUrl // Salva a URL da imagem no Realtime Database
-                };
-                
                 if (itemId) {
                     // Atualiza item existente
                     await db.ref(`menu/${itemType}/${itemId}`).update(itemData);
@@ -790,15 +776,10 @@
                 document.getElementById('item-price').value = itemToEdit.price;
                 document.getElementById('item-type').value = itemType; // Define o tipo correto
                 
-                // Exibe a imagem atual
-                if (itemToEdit.image) {
-                    currentImagePreview.src = itemToEdit.image;
-                    currentImagePreview.style.display = 'block';
-                } else {
-                    currentImagePreview.style.display = 'none';
-                    currentImagePreview.src = '';
-                }
-                itemImageUpload.value = ''; // Limpa o campo de upload para um novo upload
+                // Imagem não é mais editável via upload aqui
+                // currentImagePreview.style.display = 'none';
+                // currentImagePreview.src = '';
+                // itemImageUpload.value = '';
                 showToast(`Editando item: ${itemToEdit.name}`);
             } else {
                 showToast('Item não encontrado para edição.');
@@ -814,18 +795,7 @@
             const confirmed = await showConfirmationModal("Tem certeza que deseja excluir este item?");
             if (confirmed) {
                 try {
-                    const itemToDelete = menuData[itemType][itemId];
-                    if (itemToDelete && itemToDelete.image) {
-                        // Se houver uma imagem associada, tenta excluí-la do Storage
-                        try {
-                            const imageRef = storage.refFromURL(itemToDelete.image);
-                            await imageRef.delete();
-                            showToast("Imagem associada excluída do Storage.");
-                        } catch (storageError) {
-                            console.warn("Erro ao excluir imagem do Storage (pode não existir ou permissão):", storageError);
-                            // Continua mesmo se a exclusão da imagem falhar
-                        }
-                    }
+                    // Não há imagem para excluir do Storage, pois o upload foi removido
                     await db.ref(`menu/${itemType}/${itemId}`).remove();
                     showToast("Item excluído com sucesso!");
                 } catch (error) {
@@ -851,7 +821,7 @@
         }
 
         /**
-         * Exibe os detalhes de um pedido em uma modal ou console (para simplificar).
+         * Exibe os detalhes de um pedido em uma modal.
          * @param {string} orderId - O ID do pedido.
          */
         function showOrderDetails(orderId) {
@@ -884,9 +854,9 @@
         function clearForm() {
             menuForm.reset();
             document.getElementById('menu-item-id').value = ''; // Limpa o ID oculto
-            currentImagePreview.style.display = 'none'; // Esconde a pré-visualização da imagem
-            currentImagePreview.src = ''; // Limpa a src da imagem
-            itemImageUpload.value = ''; // Limpa o input de arquivo
+            // currentImagePreview.style.display = 'none'; // Removido
+            // currentImagePreview.src = ''; // Removido
+            // itemImageUpload.value = ''; // Removido
             showToast("Formulário limpo.");
         }
 
