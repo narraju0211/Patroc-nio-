@@ -493,7 +493,7 @@
         const db = firebase.database(); // Get a reference to the database service
 
         // --- Variáveis de Estado ---
-        let menuData = { marmitas: [], adicionais: [] }; // Agora será populado pelo Firebase
+        let menuData = { marmitas: {}, adicionais: {} }; // Agora será populado pelo Firebase
         let cart = new Map();
 
         // --- Elementos do DOM ---
@@ -682,6 +682,11 @@
             let total = 0;
             const itemsForFirebase = [];
 
+            if (cart.size === 0) {
+                showToast("Seu carrinho está vazio. Adicione itens antes de enviar o pedido.");
+                return;
+            }
+
             cart.forEach((quantity, itemId) => {
                 const item = findMenuItem(itemId);
                 if (item) {
@@ -718,6 +723,7 @@
                 });
 
                 showToast(`Pedido #${orderId} enviado com sucesso!`);
+                console.log("Pedido salvo no Firebase com ID:", orderId);
 
                 const fullMessage = encodeURIComponent(
                     `Olá, gostaria de fazer o seguinte pedido (código *${orderId}*):\n\n` +
@@ -741,7 +747,12 @@
 
             } catch (error) {
                 console.error("Erro ao enviar pedido para o Firebase:", error);
-                showToast("Erro ao enviar pedido. Tente novamente.");
+                if (error.code === 'PERMISSION_DENIED') {
+                    showToast("Erro: Permissão negada. Verifique as regras de segurança do Firebase.");
+                    console.error("Firebase PERMISSION_DENIED: Verifique suas regras de segurança para o nó '/orders'.");
+                } else {
+                    showToast("Erro ao enviar pedido. Tente novamente.");
+                }
             }
         }
         
