@@ -412,8 +412,8 @@
 
     <header id="main-header">
         <div class="logo-container">
-            <!-- Logo fixa agora, usando a imagem que você forneceu -->
-            <img id="logo-preview" src="http://googleusercontent.com/file_content/11" alt="Logo da Marmitaria">
+            <!-- Logo será carregada dinamicamente do Firebase -->
+            <img id="logo-preview" src="" alt="Logo da Marmitaria" style="display:none;">
             <h1 id="marmitaria-name">Denny Martins</h1>
         </div>
         <div>
@@ -577,12 +577,14 @@
             if (globalSettings.slogan) {
                 marmitariaSlogan.innerText = globalSettings.slogan;
             }
-            // A logo agora é fixa no HTML, não é carregada das configurações
-            // if (globalSettings.logoUrl) {
-            //     logoPreview.src = globalSettings.logoUrl;
-            // } else {
-            //     logoPreview.src = 'http://googleusercontent.com/file_content/11'; // Fallback para a logo padrão
-            // }
+            // A logo agora é carregada dinamicamente das configurações
+            if (globalSettings.logoUrl) {
+                logoPreview.src = globalSettings.logoUrl;
+                logoPreview.style.display = 'block'; // Mostra a logo se houver URL
+            } else {
+                logoPreview.style.display = 'none'; // Esconde se não houver URL
+                logoPreview.src = ''; // Limpa a URL
+            }
 
             // Aplica a posição do logo
             mainHeader.classList.remove('header-align-left', 'header-align-center', 'header-align-right');
@@ -901,10 +903,16 @@
                     applyGlobalSettings();
                 } else {
                     console.warn("Nenhuma configuração global encontrada no Firebase. Usando padrões.");
+                    // Define uma logo padrão se nenhuma for encontrada
+                    logoPreview.src = 'https://placehold.co/100x100/e74c3c/ffffff?text=Logo';
+                    logoPreview.style.display = 'block';
                 }
             }, (error) => {
                 console.error("Erro ao carregar configurações globais:", error);
                 showToast('Erro ao carregar configurações.');
+                // Define uma logo padrão em caso de erro
+                logoPreview.src = 'https://placehold.co/100x100/e74c3c/ffffff?text=Logo';
+                logoPreview.style.display = 'block';
             });
 
             // Carrega os dados do cardápio do Firebase em tempo real
